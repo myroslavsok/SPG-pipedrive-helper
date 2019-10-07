@@ -14,6 +14,8 @@
 <p>Find resemblances by column name</p>
 <input type="text" id="columnNameInput" placeholder="Column name" value="Name">
 <button id="findResemblancesBtn">Find resemblances</button>
+<br>
+<button id="clearMarkBtn">Clear</button>
 
 <!-- Connect JQUERY-->
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -30,6 +32,14 @@
         showWaitMessage(false);
         console.log('works: ', result);
     }
+
+
+    // Apply white color to the background of each row
+    document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
+    function setWhiteBackgroundOfAllRows() {
+        google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
+    }
+
 
     // Error, wait and messages
     function showError(msg, element) {

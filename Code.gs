@@ -54,8 +54,9 @@ function showSidebar() {
 
 
 // Functionality part
-var organizationsLimit = 10000; // TODO make this part more clear
-var urlOrganizations = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + organizationsLimit + '&api_token=';
+var ORGANIZATIONS_LIMIT = 10000; // TODO make this part more clear
+var URL_ORGANIZATIONS = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + ORGANIZATIONS_LIMIT + '&api_token=';
+var MARK_COLOR = '#99CC99';
 
 var pipedriveDataFieldNames = {
     organizationName: 'name',
@@ -64,17 +65,17 @@ var pipedriveDataFieldNames = {
     organizationWebsite: 'cb65d2bb8ea467c23f826a488bb0d5488ed72408',
     organizationProfilePage: '06ebfe7f9f3beead99525fae25a8baede1648164'
 };
-
 var spreadSheetFieldNameEquivalents = {};
 
+
 function findResemblances(columnName) {
+    if (!columnName) {
+        return;
+    }
     var PDOrganizationsResponse = getAllPDOrganizations();
     var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // array of arrays to array
     var SSOrganizations = getAllSSOrganizationsByColumnName(columnName); // columnName must not be empty
-    Logger.log('SSOrganizations name: ' + columnName);
-    Logger.log('SSOrganizations: ' + SSOrganizations);
-    Logger.log('PDOrganizations: ' + JSON.stringify(PDOrganizations));
-    // find organizations resemblances
+    // Find organizations resemblances
     var resemblingOrganizations = [];
     SSOrganizations.forEach(function(SSOrganization) {
         PDOrganizations.forEach(function(PDOrganization) {
@@ -85,6 +86,7 @@ function findResemblances(columnName) {
             }
         });
     });
+    markOrganizationResemblances(resemblingOrganizations);
     return {
         SSOrganizations: SSOrganizations,
         PDOrganizations: PDOrganizations,
@@ -95,7 +97,7 @@ function findResemblances(columnName) {
 
 function getAllPDOrganizations() {
     var token = "455f56a33c14b568424d956a37638cb19453b2a8";
-    var url = urlOrganizations + token;
+    var url = URL_ORGANIZATIONS + token;
     var options = {
         "method": "GET",
         "followRedirects": true,
@@ -128,6 +130,23 @@ function getAllSSOrganizationsByColumnName(columnName) {
     }
 }
 
+function markOrganizationResemblances(resemblingOrganizations) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var range = sheet.getDataRange();
+    resemblingOrganizations.forEach(function(resemblingOrganization) {
+       range.offset(resemblingOrganization.rowNumber, 0, 1).setBackground(MARK_COLOR);
+    });
+}
+
+
+// Apply white color to the background of each row
+function clearMark() {
+    var range = SpreadsheetApp.getActiveSheet().getDataRange();
+    for (var i = range.getRow(); i < range.getLastRow(); i++) {
+        range.offset(i, 0, 1).setBackgroundColor('white');
+    }
+}
+
 
 // function test() {
 //     var sheet = SpreadsheetApp.getActiveSheet();
@@ -138,33 +157,5 @@ function getAllSSOrganizationsByColumnName(columnName) {
 //     if (col != -1) {
 //         Logger.log(data[1][col]);
 //         Logger.log('col: ' + col);
-//     }
-// }
-
-// function test2(columnName) {
-//     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-//     var data = sheet.getDataRange().getValues();
-//     var colNumber = data[0].indexOf('Name'); // Column position number
-//     if (colNumber !== -1) {
-//         var SSOrganizationsColumnArr = [];
-//         // Skips first row with column titles
-//         for (var i = 1; i <= sheet.getLastRow() - 1; i++) {
-//
-//             Logger.log('rowNumber => ' + i);
-//             Logger.log('colNumber => ' + colNumber);
-//             Logger.log('colName => ' + 'Name');
-//             Logger.log('value => ' + data[i][colNumber]);
-//             SSOrganizationsColumnArr.push({
-//                 rowNumber: i,
-//                 colNumber: colNumber,
-//                 colName: 'Name',
-//                 value: data[rowNumber][colNumber],
-//                 getValue() {
-//                     re
-//                 }
-//             });
-//         }
-//         Logger.log('data => ' + SSOrganizationsColumnArr);
-//         return SSOrganizationsColumnArr;
 //     }
 // }
