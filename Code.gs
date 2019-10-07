@@ -70,10 +70,11 @@ var spreadSheetFieldNameEquivalents = {
 
 function findResemblances(columnName) {
     var PDOrganizations = getAllPDOrganizations();
-    var SSOrganizations = getAllSSOrganizationsByColumnName(columnName);
-    Logger.log('PDOrganizations ' + PDOrganizations);
-    Logger.log('SSOrganizations ' + SSOrganizations);
-
+    var SSOrganizations = getAllSSOrganizationsByColumnName(columnName); // columnName must not be empty
+    Logger.log('SSOrganizations name: ' + columnName);
+    Logger.log('SSOrganizations: ' + SSOrganizations);
+    Logger.log('PDOrganizations: ' + JSON.stringify(PDOrganizations));
+    return SSOrganizations;
 }
 
 
@@ -87,13 +88,69 @@ function getAllPDOrganizations() {
     };
     var response = UrlFetchApp.fetch(url, options);
     if (response.getResponseCode() === 200) {
-        var responseObject = JSON.parse(response.getContentText());
-        return responseObject;
+        return JSON.parse(response.getContentText());
     }
-    return response.getResponseCode;
+    return response.getResponseCode + ' failed code';
 }
 
+
 function getAllSSOrganizationsByColumnName(columnName) {
-    return columnName;
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = sheet.getDataRange().getValues();
+    var colNumber = data[0].indexOf(columnName); // Column position number
+    if (colNumber !== -1) {
+        var SSOrganizationsColumnArr = [];
+        // Skips first row with column titles
+        for (var i = 1; i <= sheet.getLastRow() - 1; i++) {
+            SSOrganizationsColumnArr.push({
+               rowNumber: i,
+               colNumber: colNumber,
+               colName: columnName,
+               value: data[i][colNumber]
+            });
+        }
+        return SSOrganizationsColumnArr;
+    }
 }
+
+
+// function test() {
+//     var sheet = SpreadsheetApp.getActiveSheet();
+//     var data = sheet.getDataRange().getValues();
+//     var colName = 'Name';
+//     var col = data[0].indexOf(colName);
+//     Logger.log(sheet.getLastRow() + " Is the last Column.");
+//     if (col != -1) {
+//         Logger.log(data[1][col]);
+//         Logger.log('col: ' + col);
+//     }
+// }
+
+// function test2(columnName) {
+//     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//     var data = sheet.getDataRange().getValues();
+//     var colNumber = data[0].indexOf('Name'); // Column position number
+//     if (colNumber !== -1) {
+//         var SSOrganizationsColumnArr = [];
+//         // Skips first row with column titles
+//         for (var i = 1; i <= sheet.getLastRow() - 1; i++) {
+//
+//             Logger.log('rowNumber => ' + i);
+//             Logger.log('colNumber => ' + colNumber);
+//             Logger.log('colName => ' + 'Name');
+//             Logger.log('value => ' + data[i][colNumber]);
+//             SSOrganizationsColumnArr.push({
+//                 rowNumber: i,
+//                 colNumber: colNumber,
+//                 colName: 'Name',
+//                 value: data[rowNumber][colNumber],
+//                 getValue() {
+//                     re
+//                 }
+//             });
+//         }
+//         Logger.log('data => ' + SSOrganizationsColumnArr);
+//         return SSOrganizationsColumnArr;
+//     }
+// }
 
