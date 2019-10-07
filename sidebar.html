@@ -21,20 +21,31 @@
 <script>
     document.getElementById('findResemblancesBtn').addEventListener('click', getAllPDOrganizationsQuery, true);
     function getAllPDOrganizationsQuery() {
+        showWaitMessage(true);
         const columnNameValue = document.getElementById('columnNameInput').value;
         google.script.run.withSuccessHandler(loadPreferences).withFailureHandler(showError).findResemblances(columnNameValue);
     }
 
     function loadPreferences(result) {
+        showWaitMessage(false);
         console.log('works: ', result);
     }
 
-    // Error message
+    // Error, wait and messages
     function showError(msg, element) {
         // var div = $('<div id="error" class="error">' + msg + '</div>');
         // $(element).after(div);
+        showWaitMessage(false);
         console.error(msg);
         alert('error: ' + msg);
+    }
+
+    function showWaitMessage(showBoolean) {
+        if (showBoolean) {
+            console.log('wait');
+        } else {
+            console.log('ready');
+        }
     }
 </script>
 </body>

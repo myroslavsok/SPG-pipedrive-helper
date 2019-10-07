@@ -54,7 +54,8 @@ function showSidebar() {
 
 
 // Functionality part
-var urlOrganizations = 'https://api.pipedrive.com/v1/organizations?start=0&api_token=';
+var organizationsLimit = 10000; // TODO make this part more clear
+var urlOrganizations = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + organizationsLimit + '&api_token=';
 
 var pipedriveDataFieldNames = {
     organizationName: 'name',
@@ -64,17 +65,31 @@ var pipedriveDataFieldNames = {
     organizationProfilePage: '06ebfe7f9f3beead99525fae25a8baede1648164'
 };
 
-var spreadSheetFieldNameEquivalents = {
-
-};
+var spreadSheetFieldNameEquivalents = {};
 
 function findResemblances(columnName) {
-    var PDOrganizations = getAllPDOrganizations();
+    var PDOrganizationsResponse = getAllPDOrganizations();
+    var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // array of arrays to array
     var SSOrganizations = getAllSSOrganizationsByColumnName(columnName); // columnName must not be empty
     Logger.log('SSOrganizations name: ' + columnName);
     Logger.log('SSOrganizations: ' + SSOrganizations);
     Logger.log('PDOrganizations: ' + JSON.stringify(PDOrganizations));
-    return SSOrganizations;
+    // find organizations resemblances
+    var resemblingOrganizations = [];
+    SSOrganizations.forEach(function(SSOrganization) {
+        PDOrganizations.forEach(function(PDOrganization) {
+            for (var key in PDOrganization) {
+                if (PDOrganization.hasOwnProperty(key) && PDOrganization[key] === SSOrganization.value) {
+                    resemblingOrganizations.push(SSOrganization);
+                }
+            }
+        });
+    });
+    return {
+        SSOrganizations: SSOrganizations,
+        PDOrganizations: PDOrganizations,
+        resemblingOrganizations: resemblingOrganizations,
+    };
 }
 
 
@@ -103,10 +118,10 @@ function getAllSSOrganizationsByColumnName(columnName) {
         // Skips first row with column titles
         for (var i = 1; i <= sheet.getLastRow() - 1; i++) {
             SSOrganizationsColumnArr.push({
-               rowNumber: i,
-               colNumber: colNumber,
-               colName: columnName,
-               value: data[i][colNumber]
+                rowNumber: i,
+                colNumber: colNumber,
+                colName: columnName,
+                value: data[i][colNumber]
             });
         }
         return SSOrganizationsColumnArr;
@@ -153,4 +168,3 @@ function getAllSSOrganizationsByColumnName(columnName) {
 //         return SSOrganizationsColumnArr;
 //     }
 // }
-
