@@ -9,6 +9,28 @@
 
         body {
             padding: 0 5px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            line-height: 1em;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .input-container {
+            margin-top: 10px;
+        }
+
+        input {
+            width: 100%;
+        }
+
+        #waitMessage {
+            display: none;
+            font-weight: bold;
         }
 
         #errorMessage {
@@ -22,20 +44,27 @@
 <body>
 
 <form id="findResemblancesForm">
-    <p>Find resemblances by column name</p>
-    <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
-    <br>
-    <input type="text" id="columnNameInput" placeholder="Column name *" class="action" required>
-    <button type="submit">Find resemblances</button>
-    <br>
-    <button id="clearMarkBtn">Clear</button>
+    <h1>Find resemblances by column name</h1>
+
+    <div class="input-container">
+        <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
+    </div>
+
+    <div class="input-container">
+        <input type="text" id="columnNameInput" placeholder="Column name *" required>
+    </div>
+
+    <button type="submit" class="action">Find resemblances</button>
 </form>
+<button id="clearMarkBtn">Clear marks from spreadsheet</button>
+<p id="waitMessage"></p>
 <span id="errorMessage" class="error" title="Hide"></span>
 
 
 <script>
     // Find resemblances
     document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
+
     function getAllPDOrganizationsQuery() {
         showWaitMessage(true);
         const columnNameValue = document.getElementById('columnNameInput').value;
@@ -50,6 +79,7 @@
 
     // Apply white color to the background of each row
     document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
+
     function setWhiteBackgroundOfAllRows() {
         google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
     }
@@ -57,10 +87,10 @@
 
     // Error, wait and messages
     function showError(msg, element) {
+        showWaitMessage(false);
         var errorMessage = document.getElementById('errorMessage');
         errorMessage.textContent = 'Error: ' + msg;
         errorMessage.style.display = 'block';
-        showWaitMessage(false);
         console.error(msg);
     }
 
@@ -71,10 +101,13 @@
 
     // Show wait message
     function showWaitMessage(showBoolean) {
+        const waitMessage = document.getElementById('waitMessage');
         if (showBoolean) {
-            console.log('wait');
+            waitMessage.style.display = 'block';
+            waitMessage.textContent = 'Addon is working now. Please, wait for about 1-3 minutes until search is finished.';
         } else {
-            console.log('ready');
+            waitMessage.style.display = 'none';
+            waitMessage.textContent = '';
         }
     }
 </script>

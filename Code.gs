@@ -54,7 +54,7 @@ function showSidebar() {
 
 
 // Functionality part
-var ORGANIZATIONS_LIMIT = 10000; // TODO make this part more clear
+var ORGANIZATIONS_LIMIT = 5000000; // TODO make this part more clear
 var URL_ORGANIZATIONS = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + ORGANIZATIONS_LIMIT + '&api_token=';
 var MARK_COLOR = '#99CC99';
 
