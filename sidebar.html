@@ -20,11 +20,32 @@
             margin-top: 10px;
         }
 
-        .input-container {
+        .input-pipedrive-api-container,
+        .input-column-name-container {
             margin-top: 10px;
         }
 
-        input {
+        .input-pipedrive-api-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-pipedrive-api-container input {
+            flex-grow: 1;
+        }
+
+        .input-pipedrive-api-container button {
+            margin-top: 0;
+            margin-left: 10px;
+        }
+
+        #deletePdakBtn,
+        #savePdakBtn {
+            display: none;
+        }
+
+        .input-column-name-container input {
             width: 100%;
         }
 
@@ -46,11 +67,13 @@
 <form id="findResemblancesForm">
     <h1>Find resemblances by column name</h1>
 
-    <div class="input-container">
+    <div class="input-pipedrive-api-container">
         <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
+        <button type="button" id="deletePdakBtn">Delete</button>
+        <button type="button" id="savePdakBtn">Save</button>
     </div>
 
-    <div class="input-container">
+    <div class="input-column-name-container">
         <input type="text" id="columnNameInput" placeholder="Column name *" required>
     </div>
 
@@ -62,18 +85,67 @@
 
 
 <script>
+    const deletePdakBtn = document.getElementById('deletePdakBtn');
+    const savePdakBtn = document.getElementById('savePdakBtn');
+    const pipedriveApiKeyInput = document.getElementById('pipedriveApiKeyInput');
+
+    window.onload = () => {
+      const pdak = localStorage.getItem('pdak');
+      if (pdak) {
+          pipedriveApiKeyInput.value = pdak;
+          togglePdakDeleteSaveBtn(true);
+      } else {
+          togglePdakDeleteSaveBtn(false);
+      }
+    };
+
+
+    // Save pipedrive api key to LS
+    deletePdakBtn.addEventListener('click', deletePdak, true);
+    function deletePdak() {
+        localStorage.removeItem('pdak');
+        pipedriveApiKeyInput.value = '';
+        togglePdakDeleteSaveBtn(false);
+
+    }
+
+    // Clear pipedive api key from LS
+    savePdakBtn.addEventListener('click', savePdak, true);
+    function savePdak() {
+        if (pipedriveApiKeyInput.value) {
+            localStorage.setItem('pdak', pipedriveApiKeyInput.value);
+            togglePdakDeleteSaveBtn(true);
+        } else {
+            alert('Unable to save: pipedrive api key is empty.');
+        }
+    }
+
+    function togglePdakDeleteSaveBtn(isDeleteBtn) {
+        pipedriveApiKeyInput.disabled = isDeleteBtn;
+        if (isDeleteBtn) {
+            deletePdakBtn.style.display = 'block';
+            savePdakBtn.style.display = 'none';
+            pipedriveApiKeyInput.style.backgroundColor = 'lightgray';
+        } else {
+            deletePdakBtn.style.display = 'none';
+            savePdakBtn.style.display = 'block';
+            pipedriveApiKeyInput.style.backgroundColor = 'white';
+        }
+    }
+
+
     // Find resemblances
     document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
 
     function getAllPDOrganizationsQuery() {
         showWaitMessage(true);
         const columnNameValue = document.getElementById('columnNameInput').value;
-        google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue);
+        const pipedriveApiKeyValue = document.getElementById('pipedriveApiKeyInput').value;
+        google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
     }
 
     function getAllPDOrganizationsProcessResponse(result) {
         showWaitMessage(false);
-        console.log('works: ', result);
     }
 
 

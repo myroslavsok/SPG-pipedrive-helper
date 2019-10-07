@@ -68,11 +68,11 @@ var MARK_COLOR = '#99CC99';
 // var spreadSheetFieldNameEquivalents = {};
 
 
-function findResemblances(columnName) {
+function findResemblances(columnName, pipedriveApiKeyValue) {
     if (!columnName) {
         return;
     }
-    var PDOrganizationsResponse = getAllPDOrganizations();
+    var PDOrganizationsResponse = getAllPDOrganizations(pipedriveApiKeyValue);
     var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // array of arrays to array
     var SSOrganizations = getAllSSOrganizationsByColumnName(columnName); // columnName must not be empty
     // Find organizations resemblances
@@ -95,9 +95,8 @@ function findResemblances(columnName) {
 }
 
 
-function getAllPDOrganizations() {
-    var token = "455f56a33c14b568424d956a37638cb19453b2a8";
-    var url = URL_ORGANIZATIONS + token;
+function getAllPDOrganizations(pipedriveApiKeyValue) {
+    var url = URL_ORGANIZATIONS + pipedriveApiKeyValue;
     var options = {
         "method": "GET",
         "followRedirects": true,
