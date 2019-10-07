@@ -58,14 +58,14 @@ var ORGANIZATIONS_LIMIT = 10000; // TODO make this part more clear
 var URL_ORGANIZATIONS = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + ORGANIZATIONS_LIMIT + '&api_token=';
 var MARK_COLOR = '#99CC99';
 
-var pipedriveDataFieldNames = {
-    organizationName: 'name',
-    organizationStand: '48389fc5d6a135fb61fa640d7bc0535ad5823b68',
-    organizationDescription: '5788bcb5084f1a5793599bd082df00619a9ddadf',
-    organizationWebsite: 'cb65d2bb8ea467c23f826a488bb0d5488ed72408',
-    organizationProfilePage: '06ebfe7f9f3beead99525fae25a8baede1648164'
-};
-var spreadSheetFieldNameEquivalents = {};
+// var pipedriveDataFieldNames = {
+//     organizationName: 'name',
+//     organizationStand: '48389fc5d6a135fb61fa640d7bc0535ad5823b68',
+//     organizationDescription: '5788bcb5084f1a5793599bd082df00619a9ddadf',
+//     organizationWebsite: 'cb65d2bb8ea467c23f826a488bb0d5488ed72408',
+//     organizationProfilePage: '06ebfe7f9f3beead99525fae25a8baede1648164'
+// };
+// var spreadSheetFieldNameEquivalents = {};
 
 
 function findResemblances(columnName) {

@@ -7,28 +7,42 @@
 
     <style>
 
+        body {
+            padding: 0 5px;
+        }
+
+        #errorMessage {
+            display: none;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
     </style>
 </head>
 <body>
 
-<p>Find resemblances by column name</p>
-<input type="text" id="columnNameInput" placeholder="Column name" value="Name">
-<button id="findResemblancesBtn">Find resemblances</button>
-<br>
-<button id="clearMarkBtn">Clear</button>
+<form id="findResemblancesForm">
+    <p>Find resemblances by column name</p>
+    <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
+    <br>
+    <input type="text" id="columnNameInput" placeholder="Column name *" class="action" required>
+    <button type="submit">Find resemblances</button>
+    <br>
+    <button id="clearMarkBtn">Clear</button>
+</form>
+<span id="errorMessage" class="error" title="Hide"></span>
 
-<!-- Connect JQUERY-->
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
 <script>
-    document.getElementById('findResemblancesBtn').addEventListener('click', getAllPDOrganizationsQuery, true);
+    // Find resemblances
+    document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
     function getAllPDOrganizationsQuery() {
         showWaitMessage(true);
         const columnNameValue = document.getElementById('columnNameInput').value;
-        google.script.run.withSuccessHandler(loadPreferences).withFailureHandler(showError).findResemblances(columnNameValue);
+        google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue);
     }
 
-    function loadPreferences(result) {
+    function getAllPDOrganizationsProcessResponse(result) {
         showWaitMessage(false);
         console.log('works: ', result);
     }
@@ -43,13 +57,19 @@
 
     // Error, wait and messages
     function showError(msg, element) {
-        // var div = $('<div id="error" class="error">' + msg + '</div>');
-        // $(element).after(div);
+        var errorMessage = document.getElementById('errorMessage');
+        errorMessage.textContent = 'Error: ' + msg;
+        errorMessage.style.display = 'block';
         showWaitMessage(false);
         console.error(msg);
-        alert('error: ' + msg);
     }
 
+    // Hide error message
+    document.getElementById('errorMessage').addEventListener('click', function () {
+        document.getElementById('errorMessage').style.display = 'none';
+    });
+
+    // Show wait message
     function showWaitMessage(showBoolean) {
         if (showBoolean) {
             console.log('wait');
