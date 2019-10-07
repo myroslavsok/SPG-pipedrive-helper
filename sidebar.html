@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <!-- The CSS package applies Google styling to buttons and other elements. -->
+    <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+
+    <style>
+
+    </style>
+</head>
+<body>
+
+<p>Find resemblances by column name</p>
+<input type="text" id="columnNameInput" placeholder="Column name">
+<button id="findResemblancesBtn">Find resemblances</button>
+
+<!-- Connect JQUERY-->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<script>
+    document.getElementById('findResemblancesBtn').addEventListener('click', getAllPDOrganizationsQuery, true);
+    function getAllPDOrganizationsQuery() {
+        const columnNameValue = document.getElementById('columnNameInput');
+        google.script.run.withSuccessHandler(loadPreferences).withFailureHandler(showError).findResemblances(columnNameValue);
+    }
+
+    function loadPreferences(result) {
+        console.log('works: ', result);
+    }
+
+    // Error message
+    function showError(msg, element) {
+        // var div = $('<div id="error" class="error">' + msg + '</div>');
+        // $(element).after(div);
+        console.error(msg);
+        alert('error: ' + msg);
+    }
+</script>
+</body>
+</html>
