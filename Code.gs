@@ -54,30 +54,19 @@ function showSidebar() {
 
 // Functionality part
 var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
-var URL_ORGANIZATIONS = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + ORGANIZATIONS_LIMIT + '&api_token=';
 var MARK_COLOR = '#99CC99';
-
-// var pipedriveDataFieldNames = {
-//     organizationName: 'name',
-//     organizationStand: '48389fc5d6a135fb61fa640d7bc0535ad5823b68',
-//     organizationDescription: '5788bcb5084f1a5793599bd082df00619a9ddadf',
-//     organizationWebsite: 'cb65d2bb8ea467c23f826a488bb0d5488ed72408',
-//     organizationProfilePage: '06ebfe7f9f3beead99525fae25a8baede1648164'
-// };
-// var spreadSheetFieldNameEquivalents = {};
 
 
 function findResemblances(columnName, pipedriveApiKeyValue) {
     if (!columnName) { // ColumnName must not be empty
         return;
     }
-    var PDOrganizationsResponse = getAllPDOrganizations(pipedriveApiKeyValue);
-    var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // Array of arrays to array
+    var PDOrganizations = getAllPDOrganizations(pipedriveApiKeyValue);
     var SSOrganizations = getAllSSOrganizationsByColumnName(columnName);
-    // Find organizations resemblances
+
     var resemblingOrganizations = [];
-    SSOrganizations.forEach(function(SSOrganization) {
-        PDOrganizations.forEach(function(PDOrganization) {
+    SSOrganizations.forEach(function (SSOrganization) {    // Find organizations resemblances
+        PDOrganizations.forEach(function (PDOrganization) {
             for (var key in PDOrganization) {
                 if (PDOrganization.hasOwnProperty(key) && // check for existence on object key
                     PDOrganization[key] !== undefined && SSOrganization.value !== undefined &&
@@ -92,25 +81,40 @@ function findResemblances(columnName, pipedriveApiKeyValue) {
     return {
         SSOrganizations: SSOrganizations,
         PDOrganizations: PDOrganizations,
-        resemblingOrganizations: resemblingOrganizations,
+        resemblingOrganizations: resemblingOrganizations
     };
 }
 
 
 function getAllPDOrganizations(pipedriveApiKeyValue) {
-    var url = URL_ORGANIZATIONS + pipedriveApiKeyValue;
     var options = {
         "method": "GET",
         "followRedirects": true,
         "muteHttpExceptions": true
     };
-    var response = UrlFetchApp.fetch(url, options);
-    if (response.getResponseCode() === 200) {
-        return JSON.parse(response.getContentText());
-    }
-    return response.getResponseCode + ' failed code';
+
+    var responsesDataArr = [];
+    var paginationOffset = 0;
+    do {
+        var targetURL = generateSearchUrl(paginationOffset, ORGANIZATIONS_LIMIT, pipedriveApiKeyValue); // Generate new link with page offset
+        var response = UrlFetchApp.fetch(targetURL, options);
+        if (response.getResponseCode() === 200) {
+            var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
+            paginationOffset += ORGANIZATIONS_LIMIT; // Increase page offset
+            if (responseObj.data) { // Avoid last extra query with null value
+                responsesDataArr.push(responseObj.data);
+            }
+        } else {
+            return response.getResponseCode + ' failed response code';
+        }
+    } while (responseObj.data); // Run cycle until we get data from server
+    return [].concat.apply([], responsesDataArr) // Array of arrays (array of pages) to one array;
 }
 
+// Generate fetch link for pipedrive organizations
+function generateSearchUrl(paginationOffset, dataLimit, apiToken) {
+    return 'https://api.pipedrive.com/v1/organizations?start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
+}
 
 function getAllSSOrganizationsByColumnName(columnName) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
@@ -118,8 +122,7 @@ function getAllSSOrganizationsByColumnName(columnName) {
     var colNumber = data[0].indexOf(columnName); // Column position number
     if (colNumber !== -1) {
         var SSOrganizationsColumnArr = [];
-        // Skips first row with column titles
-        for (var i = 1; i <= sheet.getLastRow() - 1; i++) {
+        for (var i = 1; i <= sheet.getLastRow() - 1; i++) { // Skips first row with column titles
             SSOrganizationsColumnArr.push({
                 rowNumber: i,
                 colNumber: colNumber,
@@ -134,8 +137,8 @@ function getAllSSOrganizationsByColumnName(columnName) {
 function markOrganizationResemblances(resemblingOrganizations) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var range = sheet.getDataRange();
-    resemblingOrganizations.forEach(function(resemblingOrganization) {
-       range.offset(resemblingOrganization.rowNumber, 0, 1).setBackground(MARK_COLOR);
+    resemblingOrganizations.forEach(function (resemblingOrganization) {
+        range.offset(resemblingOrganization.rowNumber, 0, 1).setBackground(MARK_COLOR);
     });
 }
 
@@ -147,16 +150,3 @@ function clearMark() {
         range.offset(i, 0, 1).setBackgroundColor('white');
     }
 }
-
-
-// function test() {
-//     var sheet = SpreadsheetApp.getActiveSheet();
-//     var data = sheet.getDataRange().getValues();
-//     var colName = 'Name';
-//     var col = data[0].indexOf(colName);
-//     Logger.log(sheet.getLastRow() + " Is the last Column.");
-//     if (col != -1) {
-//         Logger.log(data[1][col]);
-//         Logger.log('col: ' + col);
-//     }
-// }
