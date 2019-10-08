@@ -1,5 +1,4 @@
 // Addon setup settings
-
 var ADDON_TITLE = 'SPG pipedrive helper';
 
 /**
@@ -54,7 +53,7 @@ function showSidebar() {
 
 
 // Functionality part
-var ORGANIZATIONS_LIMIT = 5000000; // TODO make this part more clear
+var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var URL_ORGANIZATIONS = 'https://api.pipedrive.com/v1/organizations?start=0&limit=' + ORGANIZATIONS_LIMIT + '&api_token=';
 var MARK_COLOR = '#99CC99';
 
@@ -69,18 +68,21 @@ var MARK_COLOR = '#99CC99';
 
 
 function findResemblances(columnName, pipedriveApiKeyValue) {
-    if (!columnName) {
+    if (!columnName) { // ColumnName must not be empty
         return;
     }
     var PDOrganizationsResponse = getAllPDOrganizations(pipedriveApiKeyValue);
-    var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // array of arrays to array
-    var SSOrganizations = getAllSSOrganizationsByColumnName(columnName); // columnName must not be empty
+    var PDOrganizations = [].concat.apply([], PDOrganizationsResponse.data); // Array of arrays to array
+    var SSOrganizations = getAllSSOrganizationsByColumnName(columnName);
     // Find organizations resemblances
     var resemblingOrganizations = [];
     SSOrganizations.forEach(function(SSOrganization) {
         PDOrganizations.forEach(function(PDOrganization) {
             for (var key in PDOrganization) {
-                if (PDOrganization.hasOwnProperty(key) && PDOrganization[key] === SSOrganization.value) {
+                if (PDOrganization.hasOwnProperty(key) && // check for existence on object key
+                    PDOrganization[key] !== undefined && SSOrganization.value !== undefined &&
+                    PDOrganization[key] !== null && SSOrganization.value !== null && // Check values for undefined and null necessary for .toString()
+                    (PDOrganization[key]).toString().toLowerCase() === (SSOrganization.value).toString().toLowerCase()) { // Target check
                     resemblingOrganizations.push(SSOrganization);
                 }
             }
