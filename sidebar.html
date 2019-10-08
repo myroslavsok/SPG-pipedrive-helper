@@ -54,6 +54,21 @@
             font-weight: bold;
         }
 
+        #loaderSpinner {
+            display: none;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #4787ed;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            margin: 20px auto 0 auto;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         #errorMessage {
             display: none;
             cursor: pointer;
@@ -81,6 +96,7 @@
 </form>
 <button id="clearMarkBtn">Clear marks from spreadsheet</button>
 <p id="waitMessage"></p>
+<div id="loaderSpinner"></div>
 <span id="errorMessage" class="error" title="Hide"></span>
 
 
@@ -174,12 +190,15 @@
     // Show wait message
     function showWaitMessage(showBoolean) {
         const waitMessage = document.getElementById('waitMessage');
+        const loaderSpinner = document.getElementById('loaderSpinner');
         if (showBoolean) {
             waitMessage.style.display = 'block';
             waitMessage.textContent = 'Addon is working now. Please, wait for about 1-4 minutes until search is finished.';
+            loaderSpinner.style.display = 'block';
         } else {
             waitMessage.style.display = 'none';
             waitMessage.textContent = '';
+            loaderSpinner.style.display = 'none';
         }
     }
 </script>

@@ -69,8 +69,7 @@ function findResemblances(columnName, pipedriveApiKeyValue) {
         PDOrganizations.forEach(function (PDOrganization) {
             for (var key in PDOrganization) {
                 if (PDOrganization.hasOwnProperty(key) && // check for existence on object key
-                    PDOrganization[key] !== undefined && SSOrganization.value !== undefined &&
-                    PDOrganization[key] !== null && SSOrganization.value !== null && // Check values for undefined and null necessary for .toString()
+                    PDOrganization[key] && SSOrganization.value && // Check values for undefined and null necessary for .toString()
                     (PDOrganization[key]).toString().toLowerCase() === (SSOrganization.value).toString().toLowerCase()) { // Target check
                     resemblingOrganizations.push(SSOrganization);
                 }
