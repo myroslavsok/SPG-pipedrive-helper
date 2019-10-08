@@ -94,7 +94,7 @@
 
     <button type="submit" class="action">Find resemblances</button>
 </form>
-<button id="clearMarkBtn">Clear marks from spreadsheet</button>
+<button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
 <p id="waitMessage"></p>
 <div id="loaderSpinner"></div>
 <span id="errorMessage" class="error" title="Hide"></span>
@@ -177,7 +177,7 @@
     function showError(msg, element) {
         showWaitMessage(false);
         var errorMessage = document.getElementById('errorMessage');
-        errorMessage.textContent = 'Error: ' + msg;
+        errorMessage.textContent = msg;
         errorMessage.style.display = 'block';
         console.error(msg);
     }

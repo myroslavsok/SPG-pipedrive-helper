@@ -130,6 +130,8 @@ function getAllSSOrganizationsByColumnName(columnName) {
             });
         }
         return SSOrganizationsColumnArr;
+    } else {
+        throw new Error('Column name is not correct. Pay attention to it. It is case sensitive.');
     }
 }
 
