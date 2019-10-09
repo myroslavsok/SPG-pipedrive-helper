@@ -1,5 +1,5 @@
 // Addon setup settings
-var ADDON_TITLE = 'SPG pipedrive helper';
+var ADDON_TITLE = 'SPG pipedrive helper (duplicates identifier) v1';
 
 /**
  * Runs when the add-on is installed.
