@@ -7,6 +7,31 @@
 
     <style>
 
+        #columnNameCheckboxContainer {
+            width: 100%;
+            min-height: 100px;
+            max-height: 500px;
+            border: 1px solid lightgrey;
+            border-radius: .4px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        #columnNameCheckboxContainer label {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        #columnNameCheckboxContainer label input {
+            margin: 0;
+        }
+
+        #columnNameCheckboxContainer label span {
+            margin-left: 10px;
+        }
+
+
         body {
             padding: 0 5px;
             box-sizing: border-box;
@@ -64,9 +89,14 @@
             margin: 20px auto 0 auto;
             animation: spin 2s linear infinite;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         #errorMessage {
@@ -83,7 +113,9 @@
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
 
+    <div id="columnNameCheckboxContainer">
 
+    </div>
 
 
     <div class="input-pipedrive-api-container">
@@ -114,12 +146,29 @@
         } else {
             togglePdakDeleteSaveBtn(false);
         }
-        google.script.run.withSuccessHandler(displayColumnNamesCheckboxes).withFailureHandler(showError).getColumnNamesAndIndexes(); // Get column names
 
+
+        google.script.run.withSuccessHandler(displayColumnNamesCheckboxes).withFailureHandler(showError).getColumnNamesAndIndexes(); // Get column names
     };
 
     function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
-        console.log('columnNamesAndIndexesArr', columnNamesAndIndexesArr)
+        console.log('columnNamesAndIndexesArr', columnNamesAndIndexesArr);
+        const columnNameCheckboxContainer = document.getElementById('columnNameCheckboxContainer');
+        columnNamesAndIndexesArr.forEach(columnNameAndIndexeObj => {
+            const labelContainer = document.createElement('label');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'columnNames';
+            checkbox.value = columnNameAndIndexeObj.columnName;
+
+            const spanTextNode = document.createElement('span');
+            spanTextNode.textContent = `(${columnNameAndIndexeObj.columnIndex}) ${columnNameAndIndexeObj.columnName}`;
+
+            labelContainer.append(checkbox);
+            labelContainer.append(spanTextNode);
+            columnNameCheckboxContainer.append(labelContainer);
+        });
     }
 
 
@@ -131,6 +180,7 @@
 
     // Save pipedrive api key to LS
     deletePdakBtn.addEventListener('click', deletePdak, true);
+
     function deletePdak() {
         localStorage.removeItem('pdak');
         pipedriveApiKeyInput.value = '';
@@ -140,6 +190,7 @@
 
     // Clear pipedive api key from LS
     savePdakBtn.addEventListener('click', savePdak, true);
+
     function savePdak() {
         if (pipedriveApiKeyInput.value) {
             localStorage.setItem('pdak', pipedriveApiKeyInput.value);
