@@ -171,15 +171,9 @@
         console.log('selectedColumns', selectedColumns);
 
         // Start search on each column
-        // selectedColumns.forEach(selectedColumn => {
-        //     google.script.run.withSuccessHandler().withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
-        //     // google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
-        //
-        //
-        // });
-
-
-
+        selectedColumns.forEach(selectedColumn => {
+            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnName(selectedColumn);
+        });
     }
 
     function getSelectedColumns() {
@@ -192,9 +186,10 @@
         return selectedColumns
     }
 
-    // function getAllPDOrganizationsProcessResponse(result) {
-    //     showWaitMessage(false);
-    // }
+    function getSearchResult(result) {
+        // showWaitMessage(false);
+        console.log('result', result);
+    }
 
 
     // Old  functionality

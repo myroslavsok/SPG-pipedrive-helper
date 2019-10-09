@@ -58,7 +58,6 @@ function showSidebarSettings() {
 }
 
 
-
 // Functionality sidebar-look-up part
 var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var MARK_COLOR = '#99CC99';
@@ -169,15 +168,63 @@ function getColumnNamesAndIndexes() {
     for (var i = 0; i < columnNames.length; i++) {
         var columnNameObject = {
             columnName: columnNames[i],
-            columnIndex: sheet.getRange(1, (i+1), 1, 1).getA1Notation().match(/([A-Z]+)/)[0] // Get column index
+            columnIndex: sheet.getRange(1, (i + 1), 1, 1).getA1Notation().match(/([A-Z]+)/)[0] // Get column index
         };
         columnNameAndIndexArr.push(columnNameObject);
     }
     return columnNameAndIndexArr;
 }
 
+function searchInPDByColumnName(columnName) {
 
-// Functionality sidebar-settings part
+    // TODO Mirek getValuesByColumnName
+    const columnValues = getValuesByColumnName(columnName);
+    Logger.log('columnValues: ', columnValues);
+    return columnValues;
+
+
+    // TODO Mirek functionality for handling pagination
+    // var options = {
+    //     "method": "GET",
+    //     "followRedirects": true,
+    //     "muteHttpExceptions": true
+    // };
+    //
+    // var responsesDataArr = [];
+    // var paginationOffset = 0;
+    // do {
+    //     var targetURL = generateSearchUrl(paginationOffset, ORGANIZATIONS_LIMIT, pipedriveApiKeyValue); // Generate new link with page offset
+    //     var response = UrlFetchApp.fetch(targetURL, options);
+    //     if (response.getResponseCode() === 200) {
+    //         var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
+    //         paginationOffset += ORGANIZATIONS_LIMIT; // Increase page offset
+    //         if (responseObj.data) { // Avoid last extra query with null value
+    //             responsesDataArr.push(responseObj.data);
+    //         }
+    //     } else {
+    //         return response.getResponseCode + ' failed response code';
+    //     }
+    // } while (responseObj.data); // Run cycle until we get data from server
+    // return [].concat.apply([], responsesDataArr) // Array of arrays (array of pages) to one array;
+}
+
+function getValuesByColumnName(columnName) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = sheet.getDataRange().getValues();
+    var colNumber = data[0].indexOf(columnName); // Column position number
+
+    var columnValues = [];
+    for (var i = 1; i <= sheet.getLastRow() - 1; i++) { // Skips first row with column titles
+        columnValues.push({
+            rowNumber: i,
+            colNumber: colNumber,
+            colName: columnName,
+            value: data[i][colNumber]
+        });
+    }
+
+    return columnValues.filter(columnName => !!columnName === true); // delete empty values
+}
 
 
 // Tests
