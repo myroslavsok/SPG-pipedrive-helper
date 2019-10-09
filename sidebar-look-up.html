@@ -80,7 +80,11 @@
 <body>
 
 <form id="findResemblancesForm">
-    <h1>Find resemblances by column name</h1>
+    <h1>Look up</h1>
+    <h3>Spreadsheet Columns to look up:</h3>
+
+
+
 
     <div class="input-pipedrive-api-container">
         <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
@@ -101,19 +105,28 @@
 
 
 <script>
+    // New functionality
+    window.onload = () => {
+        const pdak = localStorage.getItem('pdak');
+        if (pdak) {
+            pipedriveApiKeyInput.value = pdak;
+            togglePdakDeleteSaveBtn(true);
+        } else {
+            togglePdakDeleteSaveBtn(false);
+        }
+        google.script.run.withSuccessHandler(displayColumnNamesCheckboxes).withFailureHandler(showError).getColumnNamesAndIndexes(); // Get column names
+
+    };
+
+    function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
+        console.log('columnNamesAndIndexesArr', columnNamesAndIndexesArr)
+    }
+
+
+    // Old  functionality
     const deletePdakBtn = document.getElementById('deletePdakBtn');
     const savePdakBtn = document.getElementById('savePdakBtn');
     const pipedriveApiKeyInput = document.getElementById('pipedriveApiKeyInput');
-
-    window.onload = () => {
-      const pdak = localStorage.getItem('pdak');
-      if (pdak) {
-          pipedriveApiKeyInput.value = pdak;
-          togglePdakDeleteSaveBtn(true);
-      } else {
-          togglePdakDeleteSaveBtn(false);
-      }
-    };
 
 
     // Save pipedrive api key to LS

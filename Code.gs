@@ -1,5 +1,5 @@
 // Addon setup settings
-var ADDON_TITLE = 'SPG pipedrive helper (duplicates identifier) v1';
+var ADDON_TITLE = 'SPG Pipedrive Look Up';
 
 /**
  * Runs when the add-on is installed.
@@ -37,7 +37,8 @@ function onInstall(e) {
  */
 function onOpen(e) {
     SpreadsheetApp.getUi().createAddonMenu()
-        .addItem('Start', 'showSidebar')
+        .addItem('Settings', 'showSidebarSettings')
+        .addItem('Look Up', 'showSidebarLookUp')
         .addToUi();
 }
 
@@ -46,13 +47,19 @@ function onOpen(e) {
  * This method is only used by the regular add-on, and is never called by
  * the mobile add-on version.
  */
-function showSidebar() {
-    var ui = HtmlService.createHtmlOutputFromFile('sidebar').setTitle(ADDON_TITLE);
+function showSidebarLookUp() {
+    var ui = HtmlService.createHtmlOutputFromFile('sidebar-look-up').setTitle(ADDON_TITLE);
+    SpreadsheetApp.getUi().showSidebar(ui);
+}
+
+function showSidebarSettings() {
+    var ui = HtmlService.createHtmlOutputFromFile('sidebar-settings').setTitle(ADDON_TITLE);
     SpreadsheetApp.getUi().showSidebar(ui);
 }
 
 
-// Functionality part
+
+// Functionality sidebar-look-up part
 var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var MARK_COLOR = '#99CC99';
 
@@ -151,3 +158,37 @@ function clearMark() {
         range.offset(i, 0, 1).setBackgroundColor('white');
     }
 }
+
+
+// New functionality sidebar-settings look up
+function getColumnNamesAndIndexes() {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var columnNames = sheet.getDataRange().offset(0, 0, 1).getValues()[0]; // Getting column names
+
+    var columnNameAndIndexArr = [];
+    for (var i = 0; i < columnNames.length; i++) {
+        var columnNameObject = {
+            columnName: columnNames[i],
+            columnIndex: sheet.getRange(1, (i+1), 1, 1).getA1Notation().match(/([A-Z]+)/)[0] // Get column index
+        };
+        columnNameAndIndexArr.push(columnNameObject);
+    }
+    return columnNameAndIndexArr;
+}
+
+
+// Functionality sidebar-settings part
+
+
+// Tests
+// Add note
+// function onEdit() {
+//     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//     var cell = sheet.getActiveCell();
+//     Logger.log('Active cell value: ' + cell.getValue());
+//     var comments = cell.getComment();
+//     for (var i = 0; i <= 2; i++) {
+//         comments += i + ') ' + 'deal: ' + 'htps://randome/' + Math.random() + '\n';
+//     }
+//     cell.setComment(comments);
+// }
