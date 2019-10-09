@@ -112,24 +112,16 @@
 <form id="findResemblancesForm">
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
-
-    <div id="columnNameCheckboxContainer">
-
-    </div>
-
-
-    <div class="input-pipedrive-api-container">
-        <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
-        <button type="button" id="deletePdakBtn">Delete</button>
-        <button type="button" id="savePdakBtn">Save</button>
-    </div>
-
-    <div class="input-column-name-container">
-        <input type="text" id="columnNameInput" placeholder="Column name *" required>
-    </div>
-
-    <button type="submit" class="action">Find resemblances</button>
+    <div id="columnNameCheckboxContainer"></div>
+    <button type="submit" class="action">Look Up</button>
 </form>
+
+<div class="input-pipedrive-api-container">
+    <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
+    <button type="button" id="deletePdakBtn">Delete</button>
+    <button type="button" id="savePdakBtn">Save</button>
+</div>
+
 <button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
 <p id="waitMessage"></p>
 <div id="loaderSpinner"></div>
@@ -170,6 +162,39 @@
             columnNameCheckboxContainer.append(labelContainer);
         });
     }
+
+    // Start search by selected columns
+    document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
+    function startResemblancesSearchQuery() {
+        // showWaitMessage(true);
+        const selectedColumns = getSelectedColumns(); // Get selected columns
+        console.log('selectedColumns', selectedColumns);
+
+        // Start search on each column
+        // selectedColumns.forEach(selectedColumn => {
+        //     google.script.run.withSuccessHandler().withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
+        //     // google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
+        //
+        //
+        // });
+
+
+
+    }
+
+    function getSelectedColumns() {
+        let selectedColumns = [];
+        document.body.querySelectorAll('#columnNameCheckboxContainer input:checked')
+            .forEach(selectedCheckbox => selectedColumns.push(selectedCheckbox.value));
+        if (!selectedColumns.length) {
+            alert('There is no selected checkboxes');
+        }
+        return selectedColumns
+    }
+
+    // function getAllPDOrganizationsProcessResponse(result) {
+    //     showWaitMessage(false);
+    // }
 
 
     // Old  functionality
@@ -215,18 +240,18 @@
 
 
     // Find resemblances
-    document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
-
-    function getAllPDOrganizationsQuery() {
-        showWaitMessage(true);
-        const columnNameValue = document.getElementById('columnNameInput').value;
-        const pipedriveApiKeyValue = document.getElementById('pipedriveApiKeyInput').value;
-        google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
-    }
-
-    function getAllPDOrganizationsProcessResponse(result) {
-        showWaitMessage(false);
-    }
+    // document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
+    //
+    // function getAllPDOrganizationsQuery() {
+    //     showWaitMessage(true);
+    //     const columnNameValue = document.getElementById('columnNameInput').value;
+    //     const pipedriveApiKeyValue = document.getElementById('pipedriveApiKeyInput').value;
+    //     google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
+    // }
+    //
+    // function getAllPDOrganizationsProcessResponse(result) {
+    //     showWaitMessage(false);
+    // }
 
 
     // Apply white color to the background of each row
