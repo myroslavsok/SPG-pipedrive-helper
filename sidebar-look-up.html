@@ -15,6 +15,7 @@
             border-radius: .4px;
             overflow-y: auto;
             margin-top: 10px;
+            padding-left: 5px;
         }
 
         #columnNameCheckboxContainer label {
@@ -163,6 +164,7 @@
         });
     }
 
+    // Submit form
     // Start search by selected columns
     document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
     function startResemblancesSearchQuery() {
@@ -172,7 +174,7 @@
 
         // Start search on each column
         selectedColumns.forEach(selectedColumn => {
-            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnName(selectedColumn);
+            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnValues(selectedColumn);
         });
     }
 
