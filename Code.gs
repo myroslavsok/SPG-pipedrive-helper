@@ -58,9 +58,6 @@ function showSidebarSettings() {
 }
 
 
-
-
-
 // Functionality sidebar-look-up part
 var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var MARK_COLOR = '#99CC99';
@@ -110,10 +107,10 @@ function searchInPDByColumnValues(columnName) {
                         cellRowNumber: columnValueCell.rowNumber,
                         cellColumnNumber: columnValueCell.colNumber,
                         columnName: columnValueCell.colName,
-                        url: PIPEDRIVE_SMART_EMAIL.split('@')[0]
+                        url: generateFoundItemUrl(PIPEDRIVE_SMART_EMAIL.split('@')[0], foundItem.type, foundItem.id)
                     }
                 });
-                markCellWithResemblances(foundResultItems); // Mark found cell with color and add note to it
+                markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
                 responseArr.push(foundResultItems);
             }
         }
@@ -175,12 +172,25 @@ function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
 }
 
 
-function markCellWithResemblances(foundResultItems) {
+function generateFoundItemUrl(PDsmartEmail, itemType, itemId) {
+    return 'https://' + PDsmartEmail + '.pipedrive.com/' + itemType + '/' + itemId;
+}
+
+
+function markAndCommentCellWithResemblances(foundResultItems) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var range = sheet.getDataRange();
     var cellColumnNumber = ++foundResultItems[0].cellColumnNumber;
     var cellRowNumber = ++foundResultItems[0].cellRowNumber;
-    range.getCell(cellRowNumber, cellColumnNumber).setBackground(MARK_COLOR); // Mark/paint cell
+    var targetCell = range.getCell(cellRowNumber, cellColumnNumber);
+    targetCell.setBackground(MARK_COLOR); // Mark/paint cell
+
+    // Add notes to cell
+    var comment = '';
+    foundResultItems.forEach(function (foundItem) {
+        comment += foundItem.url + '\n';
+    });
+    targetCell.setComment(comment);
 }
 
 
@@ -189,20 +199,8 @@ function clearMark() {
     var range = SpreadsheetApp.getActiveSheet().getDataRange();
     for (var i = range.getRow(); i < range.getLastRow(); i++) {
         range.offset(i, 0, 1).setBackgroundColor('white');
+        range.offset(i, 0, 1).setComment('');
     }
 }
 
 
-
-// Tests
-// Add note
-// function onEdit() {
-//     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-//     var cell = sheet.getActiveCell();
-//     Logger.log('Active cell value: ' + cell.getValue());
-//     var comments = cell.getComment();
-//     for (var i = 0; i <= 2; i++) {
-//         comments += i + ') ' + 'deal: ' + 'htps://randome/' + Math.random() + '\n';
-//     }
-//     cell.setComment(comments);
-// }
