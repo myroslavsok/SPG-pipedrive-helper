@@ -15,12 +15,12 @@
             border-radius: .4px;
             overflow-y: auto;
             margin-top: 10px;
-            padding-left: 5px;
         }
 
         #columnNameCheckboxContainer label {
             display: flex;
             align-items: center;
+            margin-left: 5px;
             margin-top: 10px;
         }
 
@@ -79,6 +79,7 @@
             display: none;
             cursor: pointer;
             margin-top: 20px;
+            word-break: break-word;
         }
 
     </style>
@@ -137,9 +138,13 @@
         const selectedColumns = getSelectedColumns(); // Get selected columns
         console.log('selectedColumns', selectedColumns);
 
+        const creds = {
+            pdak: localStorage.getItem('pdak'),
+            pdse: localStorage.getItem('pdse')
+        };
         // Start search on each column
         selectedColumns.forEach(selectedColumn => {
-            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnValues(selectedColumn);
+            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnValues(selectedColumn, creds);
         });
     }
 

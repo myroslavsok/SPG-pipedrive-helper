@@ -59,9 +59,11 @@ function showSidebarSettings() {
 
 
 // Functionality sidebar-look-up part
-var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
+var SEARCH_QUERY_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var MARK_COLOR = '#99CC99';
-var PIPEDRIVE_SMART_EMAIL = 'pentlab-240dda@pipedrivemail.com';
+
+var pipedriveSmartEmail = '';
+var pipedriveApiKey = '';
 
 
 function getColumnNamesAndIndexes() {
@@ -80,7 +82,10 @@ function getColumnNamesAndIndexes() {
 }
 
 
-function searchInPDByColumnValues(columnName) {
+function searchInPDByColumnValues(columnName, creds) {
+    pipedriveApiKey = creds.pdak; // Set 'credentials'
+    pipedriveSmartEmail = creds.pdse;
+
     const columnValueCells = getValueCellsByColumnName(columnName); // Getting column cells with values by column name
 
     // Start search by values from one column
@@ -91,8 +96,8 @@ function searchInPDByColumnValues(columnName) {
     };
     var responseArr = [];
     columnValueCells.forEach(function (columnValueCell) {
-        // TODO Mirek optimize (get API from LS);
-        var targetUrl = generateSearchUrl(columnValueCell.value, 0, ORGANIZATIONS_LIMIT, '455f56a33c14b568424d956a37638cb19453b2a8');
+        var targetUrl = generateSearchUrl(columnValueCell.value, 0, SEARCH_QUERY_LIMIT, pipedriveApiKey);
+        Logger.log(targetUrl + '\n');
         var response = UrlFetchApp.fetch(targetUrl, options);
         if (response.getResponseCode() === 200) {
             var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
@@ -107,7 +112,7 @@ function searchInPDByColumnValues(columnName) {
                         cellRowNumber: columnValueCell.rowNumber,
                         cellColumnNumber: columnValueCell.colNumber,
                         columnName: columnValueCell.colName,
-                        url: generateFoundItemUrl(PIPEDRIVE_SMART_EMAIL.split('@')[0], foundItem.type, foundItem.id)
+                        url: generateFoundItemUrl(pipedriveSmartEmail.split('@')[0], foundItem.type, foundItem.id)
                     }
                 });
                 markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
@@ -127,11 +132,11 @@ function searchInPDByColumnValues(columnName) {
 //     var responsesDataArr = [];
 //     var paginationOffset = 0;
 //     do {
-//         var targetURL = generateSearchUrl(paginationOffset, ORGANIZATIONS_LIMIT, pipedriveApiKeyValue); // Generate new link with page offset
+//         var targetURL = generateSearchUrl(paginationOffset, SEARCH_QUERY_LIMIT, pipedriveApiKeyValue); // Generate new link with page offset
 //         var response = UrlFetchApp.fetch(targetURL, options);
 //         if (response.getResponseCode() === 200) {
 //             var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
-//             paginationOffset += ORGANIZATIONS_LIMIT; // Increase page offset
+//             paginationOffset += SEARCH_QUERY_LIMIT; // Increase page offset
 //             if (responseObj.data) { // Avoid last extra query with null value
 //                 responsesDataArr.push(responseObj.data);
 //             }
@@ -168,6 +173,9 @@ function getValueCellsByColumnName(columnName) {
 
 // Generate fetch url for search (SearchResults API)
 function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
+    // TODO Mirek resolve issue
+    // .slice(0, (SEARCH_QUERY_LIMIT - 100)).replace(/(\r\n|\n|\r)/gm, '')
+    // If there are more than 500 characters fetch query fails
     return 'https://api.pipedrive.com/v1/searchResults?term=' + term + '&start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
 }
 
