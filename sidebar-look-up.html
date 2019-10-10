@@ -46,31 +46,6 @@
             margin-top: 10px;
         }
 
-        .input-pipedrive-api-container,
-        .input-column-name-container {
-            margin-top: 10px;
-        }
-
-        .input-pipedrive-api-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .input-pipedrive-api-container input {
-            flex-grow: 1;
-        }
-
-        .input-pipedrive-api-container button {
-            margin-top: 0;
-            margin-left: 10px;
-        }
-
-        #deletePdakBtn,
-        #savePdakBtn {
-            display: none;
-        }
-
         .input-column-name-container input {
             width: 100%;
         }
@@ -117,12 +92,6 @@
     <button type="submit" class="action">Look Up</button>
 </form>
 
-<div class="input-pipedrive-api-container">
-    <input type="text" id="pipedriveApiKeyInput" placeholder="Pipedrive api key *" required>
-    <button type="button" id="deletePdakBtn">Delete</button>
-    <button type="button" id="savePdakBtn">Save</button>
-</div>
-
 <button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
 <p id="waitMessage"></p>
 <div id="loaderSpinner"></div>
@@ -130,17 +99,13 @@
 
 
 <script>
-    // New functionality
     window.onload = () => {
         const pdak = localStorage.getItem('pdak');
-        if (pdak) {
-            pipedriveApiKeyInput.value = pdak;
-            togglePdakDeleteSaveBtn(true);
-        } else {
-            togglePdakDeleteSaveBtn(false);
+        const pdse = localStorage.getItem('pdse');
+        if (!pdak || !pdse) {
+            showError('Pipedrive Api Key or Smart Email is not provided in settings.');
+            document.getElementById('findResemblancesForm').style.display = 'none';
         }
-
-
         google.script.run.withSuccessHandler(displayColumnNamesCheckboxes).withFailureHandler(showError).getColumnNamesAndIndexes(); // Get column names
     };
 
@@ -194,66 +159,8 @@
     }
 
 
-    // Old  functionality
-    const deletePdakBtn = document.getElementById('deletePdakBtn');
-    const savePdakBtn = document.getElementById('savePdakBtn');
-    const pipedriveApiKeyInput = document.getElementById('pipedriveApiKeyInput');
-
-
-    // Save pipedrive api key to LS
-    deletePdakBtn.addEventListener('click', deletePdak, true);
-
-    function deletePdak() {
-        localStorage.removeItem('pdak');
-        pipedriveApiKeyInput.value = '';
-        togglePdakDeleteSaveBtn(false);
-
-    }
-
-    // Clear pipedive api key from LS
-    savePdakBtn.addEventListener('click', savePdak, true);
-
-    function savePdak() {
-        if (pipedriveApiKeyInput.value) {
-            localStorage.setItem('pdak', pipedriveApiKeyInput.value);
-            togglePdakDeleteSaveBtn(true);
-        } else {
-            alert('Unable to save: pipedrive api key is empty.');
-        }
-    }
-
-    function togglePdakDeleteSaveBtn(isDeleteBtn) {
-        pipedriveApiKeyInput.disabled = isDeleteBtn;
-        if (isDeleteBtn) {
-            deletePdakBtn.style.display = 'block';
-            savePdakBtn.style.display = 'none';
-            pipedriveApiKeyInput.style.backgroundColor = 'lightgray';
-        } else {
-            deletePdakBtn.style.display = 'none';
-            savePdakBtn.style.display = 'block';
-            pipedriveApiKeyInput.style.backgroundColor = 'white';
-        }
-    }
-
-
-    // Find resemblances
-    // document.getElementById('findResemblancesForm').addEventListener('submit', getAllPDOrganizationsQuery, true);
-    //
-    // function getAllPDOrganizationsQuery() {
-    //     showWaitMessage(true);
-    //     const columnNameValue = document.getElementById('columnNameInput').value;
-    //     const pipedriveApiKeyValue = document.getElementById('pipedriveApiKeyInput').value;
-    //     google.script.run.withSuccessHandler(getAllPDOrganizationsProcessResponse).withFailureHandler(showError).findResemblances(columnNameValue, pipedriveApiKeyValue);
-    // }
-    //
-    // function getAllPDOrganizationsProcessResponse(result) {
-    //     showWaitMessage(false);
-    // }
-
-
     // Apply white color to the background of each row
     document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
-
     function setWhiteBackgroundOfAllRows() {
         google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
     }
