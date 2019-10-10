@@ -64,22 +64,9 @@ function showSidebarSettings() {
 // Functionality sidebar-look-up part
 var ORGANIZATIONS_LIMIT = 500; // https://pipedrive.readme.io/docs/core-api-concepts-pagination maximum limit value is 500
 var MARK_COLOR = '#99CC99';
+var PIPEDRIVE_SMART_EMAIL = 'pentlab-240dda@pipedrivemail.com';
 
 
-// Apply white color to the background of each row
-function clearMark() {
-    var range = SpreadsheetApp.getActiveSheet().getDataRange();
-    for (var i = range.getRow(); i < range.getLastRow(); i++) {
-        range.offset(i, 0, 1).setBackgroundColor('white');
-    }
-}
-
-
-
-
-
-
-// New functionality sidebar-settings look up
 function getColumnNamesAndIndexes() {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var columnNames = sheet.getDataRange().offset(0, 0, 1).getValues()[0]; // Getting column names
@@ -97,7 +84,6 @@ function getColumnNamesAndIndexes() {
 
 
 function searchInPDByColumnValues(columnName) {
-
     const columnValueCells = getValueCellsByColumnName(columnName); // Getting column cells with values by column name
 
     // Start search by values from one column
@@ -114,8 +100,8 @@ function searchInPDByColumnValues(columnName) {
         if (response.getResponseCode() === 200) {
             var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
             if (responseObj.data) {   // Return only existed values
-                // .data it is array of found items (deal, person, organization etc)
-                var accumulatedResponceObj = responseObj.data.map(function (foundItem) {
+                var foundResultItems = responseObj.data.map(function (foundItem) {
+                    // responseObj.data is array of found items (deal, person, organization etc)
                     return {
                         id: foundItem.id,
                         title: foundItem.title,
@@ -124,12 +110,15 @@ function searchInPDByColumnValues(columnName) {
                         cellRowNumber: columnValueCell.rowNumber,
                         cellColumnNumber: columnValueCell.colNumber,
                         columnName: columnValueCell.colName,
+                        url: PIPEDRIVE_SMART_EMAIL.split('@')[0]
                     }
                 });
-                responseArr.push(accumulatedResponceObj);
+                markCellWithResemblances(foundResultItems); // Mark found cell with color and add note to it
+                responseArr.push(foundResultItems);
             }
         }
     });
+
     return responseArr
 // TODO handle pagination
 //     var options = {
@@ -185,12 +174,22 @@ function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
     return 'https://api.pipedrive.com/v1/searchResults?term=' + term + '&start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
 }
 
-function markCellWithResemblances(resemblingOrganizations) {
-    // var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    // var range = sheet.getDataRange();
-    // resemblingOrganizations.forEach(function (resemblingOrganization) {
-    //     range.offset(resemblingOrganization.rowNumber, 0, 1).setBackground(MARK_COLOR);
-    // });
+
+function markCellWithResemblances(foundResultItems) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var range = sheet.getDataRange();
+    var cellColumnNumber = ++foundResultItems[0].cellColumnNumber;
+    var cellRowNumber = ++foundResultItems[0].cellRowNumber;
+    range.getCell(cellRowNumber, cellColumnNumber).setBackground(MARK_COLOR); // Mark/paint cell
+}
+
+
+// Apply white color to the background of each row
+function clearMark() {
+    var range = SpreadsheetApp.getActiveSheet().getDataRange();
+    for (var i = range.getRow(); i < range.getLastRow(); i++) {
+        range.offset(i, 0, 1).setBackgroundColor('white');
+    }
 }
 
 
