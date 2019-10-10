@@ -16,14 +16,95 @@
             line-height: 1em;
         }
 
+        .settings-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .input-wrapper input {
+            flex-grow: 1;
+        }
+
+        .input-wrapper a {
+            margin-left: 10px;
+        }
+
+        #saveSettingsBtn {
+            margin-top: 20px;
+            margin-left: auto;
+        }
+
+        #saveMessage {
+            display: none;
+            font-size: 1.6em;
+            font-weight: bold;
+            margin: 20px auto 0 auto;
+            text-align: center;
+            color: #07ff52;
+        }
+
     </style>
 </head>
 <body>
-
 <h1>Settings</h1>
+<form class="settings-wrapper">
+    <div class="input-wrapper">
+        <input type="text" id="pipeDriveApiKeyInput" placeholder="Pipedrive Api Key" title="Pipedrive Api Key" required>
+        <a href="https://support.pipedrive.com/hc/en-us/articles/207344545-How-can-I-find-my-personal-API-key-"
+           target="_blank">Help</a>
+    </div>
 
+    <div class="input-wrapper">
+        <input type="text" id="pipeDriveSmartEmailInput" placeholder="Pipedrive Smart Email BCC"
+               title="Pipedrive Smart Email BCC" required>
+        <a href="https://support.pipedrive.com/hc/en-us/articles/360000015825-Smart-Email-BCC" target="_blank">Help</a>
+    </div>
+    <button type="submit" class="action" id="saveSettingsBtn">Save</button>
+</form>
+
+<span id="saveMessage">Saved</span>
 
 <script>
+
+    window.onload = () => {
+        const pipeDriveApiKey = localStorage.getItem('pdak');
+        if (pipeDriveApiKey) {
+            document.getElementById('pipeDriveApiKeyInput').value = pipeDriveApiKey;
+        }
+
+        const pipeDriveSmartEmail = localStorage.getItem('pdse');
+        if (pipeDriveSmartEmail) {
+            document.getElementById('pipeDriveSmartEmailInput').value = pipeDriveSmartEmail;
+        }
+    };
+
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    saveSettingsBtn.addEventListener('click', () => {
+        var pipeDriveApiKey = document.getElementById('pipeDriveApiKeyInput').value;
+        localStorage.setItem('pdak', pipeDriveApiKey);
+
+        var pipeDriveSmartEmail = document.getElementById('pipeDriveSmartEmailInput').value;
+        localStorage.setItem('pdse', pipeDriveSmartEmail);
+
+        showSaveMessage();
+    }, true);
+
+
+    function showSaveMessage() {
+        const saveMessage = document.getElementById('saveMessage');
+        saveMessage.style.display = 'block';
+        setTimeout(() => {
+            saveMessage.style.display = 'none';
+        }, 2000);
+    }
+
 
 </script>
 </body>
