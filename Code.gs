@@ -126,31 +126,6 @@ function searchInPDByColumnValues(columnName, creds) {
     });
 
     return responseArr
-
-// TODO handle pagination
-
-//     var options = {
-//         "method": "GET",
-//         "followRedirects": true,
-//         "muteHttpExceptions": true
-//     };
-//
-//     var responsesDataArr = [];
-//     var paginationOffset = 0;
-//     do {
-//         var targetURL = generateSearchUrl(paginationOffset, SEARCH_QUERY_LIMIT, pipedriveApiKeyValue); // Generate new link with page offset
-//         var response = UrlFetchApp.fetch(targetURL, options);
-//         if (response.getResponseCode() === 200) {
-//             var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
-//             paginationOffset += SEARCH_QUERY_LIMIT; // Increase page offset
-//             if (responseObj.data) { // Avoid last extra query with null value
-//                 responsesDataArr.push(responseObj.data);
-//             }
-//         } else {
-//             return response.getResponseCode + ' failed response code';
-//         }
-//     } while (responseObj.data); // Run cycle until we get data from server
-//     return [].concat.apply([], responsesDataArr) // Array of arrays (array of pages) to one array;
 }
 
 
@@ -219,5 +194,4 @@ function clearMark() {
         range.offset(i, 0, 1).setComment('');
     }
 }
-
 

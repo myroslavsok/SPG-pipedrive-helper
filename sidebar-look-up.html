@@ -10,7 +10,7 @@
         #columnNameCheckboxContainer {
             width: 100%;
             min-height: 100px;
-            max-height: 500px;
+            max-height: 300px;
             border: 1px solid lightgrey;
             border-radius: .4px;
             overflow-y: auto;
@@ -62,7 +62,7 @@
             border-radius: 50%;
             width: 45px;
             height: 45px;
-            margin: 20px auto 0 auto;
+            margin: 20px auto 20px auto;
             animation: spin 2s linear infinite;
         }
 
@@ -82,6 +82,12 @@
             word-break: break-word;
         }
 
+        #amountOfFindItemsField {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
     </style>
 </head>
 <body>
@@ -90,12 +96,15 @@
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
     <div id="columnNameCheckboxContainer"></div>
-    <button type="submit" class="action">Look Up</button>
+    <button type="submit" class="action" id="lookUpBtn">Look Up</button>
+    <span id="amountOfFindItemsField">Results: have not started yet</span>
 </form>
 
 <button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
+
 <p id="waitMessage"></p>
 <div id="loaderSpinner"></div>
+
 <span id="errorMessage" class="error" title="Hide"></span>
 
 
@@ -107,8 +116,12 @@
             showError('Pipedrive Api Key or Smart Email is not provided in settings.');
             document.getElementById('findResemblancesForm').style.display = 'none';
         }
-        google.script.run.withSuccessHandler(displayColumnNamesCheckboxes).withFailureHandler(showError).getColumnNamesAndIndexes(); // Get column names
+        google.script.run
+            .withSuccessHandler(displayColumnNamesCheckboxes)
+            .withFailureHandler(showError)
+            .getColumnNamesAndIndexes(); // Get column names
     };
+
 
     function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
         console.log('columnNamesAndIndexesArr', columnNamesAndIndexesArr);
@@ -130,23 +143,54 @@
         });
     }
 
-    // Submit form
-    // Start search by selected columns
+
+    // Submit form. Start search by selected columns
     document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
     function startResemblancesSearchQuery() {
         // showWaitMessage(true);
         const selectedColumns = getSelectedColumns(); // Get selected columns
         console.log('selectedColumns', selectedColumns);
 
+        // Start search on each column
         const creds = {
             pdak: localStorage.getItem('pdak'),
             pdse: localStorage.getItem('pdse')
         };
-        // Start search on each column
+
+        showWaitMessage(true);
+        document.getElementById('lookUpBtn').disabled = true; // Disable [Look Up] during search
+        let lookedUpColumnsNumber = 0;
+        const totalColumnsNumber = selectedColumns.length;
+
+        let amountOfFindItems = 0;
+        document.getElementById('amountOfFindItemsField').textContent = `Results: Processing`;
+
+
         selectedColumns.forEach(selectedColumn => {
-            google.script.run.withSuccessHandler(getSearchResult).withFailureHandler(showError).searchInPDByColumnValues(selectedColumn, creds);
+            google.script.run
+                .withSuccessHandler(function (response) {
+                    getSearchResult(response);
+                    lookedUpColumnsNumber++;
+
+                    amountOfFindItems += response.length;
+
+                    if (lookedUpColumnsNumber === totalColumnsNumber) { // When search is finished
+                        showWaitMessage(false);
+                        document.getElementById('lookUpBtn').disabled = false; // Enable [Look Up] after search
+
+                        if (amountOfFindItems) { // Update Results (amount of found items) field
+                            document.getElementById('amountOfFindItemsField').textContent = `Results: ${amountOfFindItems} matches found`;
+                        } else {
+                            document.getElementById('amountOfFindItemsField').textContent = `Results: There are no matches with Pipedrive data`;
+                        }
+
+                    }
+                })
+                .withFailureHandler(showError)
+                .searchInPDByColumnValues(selectedColumn, creds);
         });
     }
+
 
     function getSelectedColumns() {
         let selectedColumns = [];
@@ -157,6 +201,7 @@
         }
         return selectedColumns
     }
+
 
     function getSearchResult(result) {
         // showWaitMessage(false);
@@ -180,10 +225,12 @@
         console.error(msg);
     }
 
+
     // Hide error message
     document.getElementById('errorMessage').addEventListener('click', function () {
         document.getElementById('errorMessage').style.display = 'none';
     });
+
 
     // Show wait message
     function showWaitMessage(showBoolean) {
