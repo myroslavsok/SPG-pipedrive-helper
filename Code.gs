@@ -97,32 +97,38 @@ function searchInPDByColumnValues(columnName, creds) {
     var responseArr = [];
     columnValueCells.forEach(function (columnValueCell) {
         var targetUrl = generateSearchUrl(columnValueCell.value, 0, SEARCH_QUERY_LIMIT, pipedriveApiKey);
-        Logger.log(targetUrl + '\n');
-        var response = UrlFetchApp.fetch(targetUrl, options);
-        if (response.getResponseCode() === 200) {
-            var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
-            if (responseObj.data) {   // Return only existed values
-                var foundResultItems = responseObj.data.map(function (foundItem) {
-                    // responseObj.data is array of found items (deal, person, organization etc)
-                    return {
-                        id: foundItem.id,
-                        title: foundItem.title,
-                        type: foundItem.type,
-                        cellValue: columnValueCell.value,
-                        cellRowNumber: columnValueCell.rowNumber,
-                        cellColumnNumber: columnValueCell.colNumber,
-                        columnName: columnValueCell.colName,
-                        url: generateFoundItemUrl(pipedriveSmartEmail.split('@')[0], foundItem.type, foundItem.id)
-                    }
-                });
-                markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
-                responseArr.push(foundResultItems);
+        try {
+            var response = UrlFetchApp.fetch(targetUrl, options);
+            if (response.getResponseCode() === 200) {
+                Logger.log('response ' + response);
+                var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
+                if (responseObj.data) {   // Return only existed values
+                    var foundResultItems = responseObj.data.map(function (foundItem) {
+                        // responseObj.data is array of found items (deal, person, organization etc)
+                        return {
+                            id: foundItem.id,
+                            title: foundItem.title,
+                            type: foundItem.type,
+                            cellValue: columnValueCell.value,
+                            cellRowNumber: columnValueCell.rowNumber,
+                            cellColumnNumber: columnValueCell.colNumber,
+                            columnName: columnValueCell.colName,
+                            url: generateFoundItemUrl(pipedriveSmartEmail.split('@')[0], foundItem.type, foundItem.id)
+                        }
+                    });
+                    markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
+                    responseArr.push(foundResultItems);
+                }
             }
+        } catch (e) {
+            Logger.log('error: ' + e); // Ignore possible error so as not to stop search
         }
     });
 
     return responseArr
+
 // TODO handle pagination
+
 //     var options = {
 //         "method": "GET",
 //         "followRedirects": true,
@@ -173,10 +179,13 @@ function getValueCellsByColumnName(columnName) {
 
 // Generate fetch url for search (SearchResults API)
 function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
-    // TODO Mirek resolve issue
-    // .slice(0, (SEARCH_QUERY_LIMIT - 100)).replace(/(\r\n|\n|\r)/gm, '')
-    // If there are more than 500 characters fetch query fails
-    return 'https://api.pipedrive.com/v1/searchResults?term=' + term + '&start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
+    var formatedTerm = term
+        .slice(0, SEARCH_QUERY_LIMIT) // Temp length limit is 500 characters
+        .replace(new RegExp(/[`~#&*]/gi), ''); // Delete special characters so as to encode url with encodeURI
+    // https://stackoverflow.com/questions/332872/encode-url-in-javascript/332897#332897?newreg=d7be5054e80b4f948cdcf3129cbc3aaa
+
+    var targetUrl = 'https://api.pipedrive.com/v1/searchResults?term=' + formatedTerm + '&start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
+    return encodeURI(targetUrl);
 }
 
 
