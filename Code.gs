@@ -155,6 +155,7 @@ function getValueCellsByColumnName(columnName) {
 // Generate fetch url for search (SearchResults API)
 function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
     var formatedTerm = term
+        .toString() // Can not slice number
         .slice(0, SEARCH_QUERY_LIMIT) // Temp length limit is 500 characters
         .replace(new RegExp(/[`~#&*]/gi), ''); // Delete special characters so as to encode url with encodeURI
     // https://stackoverflow.com/questions/332872/encode-url-in-javascript/332897#332897?newreg=d7be5054e80b4f948cdcf3129cbc3aaa

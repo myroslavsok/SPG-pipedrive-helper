@@ -220,7 +220,7 @@
     function showError(msg, element) {
         showWaitMessage(false);
         var errorMessage = document.getElementById('errorMessage');
-        errorMessage.textContent = msg;
+        errorMessage.textContent = `${msg}. If Look Up button is disabled try to reopen add-on.`;
         errorMessage.style.display = 'block';
         console.error(msg);
     }
