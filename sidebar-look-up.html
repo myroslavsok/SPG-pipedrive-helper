@@ -55,7 +55,8 @@
             font-weight: bold;
         }
 
-        #loaderSpinner {
+        #loaderSpinner,
+        #loaderSpinnerColumnNames {
             display: none;
             border: 6px solid #f3f3f3;
             border-top: 6px solid #4787ed;
@@ -75,6 +76,14 @@
             }
         }
 
+        #loaderSpinnerColumnNames {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #4787ed;
+            width: 60px;
+            height: 60px;
+            margin-top: 40px;
+        }
+
         #errorMessage {
             display: none;
             cursor: pointer;
@@ -92,15 +101,17 @@
 </head>
 <body>
 
+<div id="loaderSpinnerColumnNames"></div>
+
 <form id="findResemblancesForm">
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
     <div id="columnNameCheckboxContainer"></div>
     <button type="submit" class="action" id="lookUpBtn">Look Up</button>
-    <span id="amountOfFindItemsField">Results: have not started yet</span>
+    <span id="amountOfFindItemsField">Results: has not started yet</span>
+    <button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
 </form>
 
-<button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
 
 <p id="waitMessage"></p>
 <div id="loaderSpinner"></div>
@@ -116,6 +127,10 @@
             showError('Pipedrive Api Key or Smart Email is not provided in settings.');
             document.getElementById('findResemblancesForm').style.display = 'none';
         }
+
+        document.getElementById('findResemblancesForm').style.display = 'none';
+        document.getElementById('loaderSpinnerColumnNames').style.display = 'block';
+
         google.script.run
             .withSuccessHandler(displayColumnNamesCheckboxes)
             .withFailureHandler(showError)
@@ -141,6 +156,10 @@
             labelContainer.append(spanTextNode);
             columnNameCheckboxContainer.append(labelContainer);
         });
+
+        document.getElementById('findResemblancesForm').style.display = 'block';
+        document.getElementById('loaderSpinnerColumnNames').style.display = 'none';
+
     }
 
 
@@ -209,13 +228,6 @@
     }
 
 
-    // Apply white color to the background of each row
-    document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
-    function setWhiteBackgroundOfAllRows() {
-        google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
-    }
-
-
     // Error, wait and messages
     function showError(msg, element) {
         showWaitMessage(false);
@@ -245,6 +257,13 @@
             waitMessage.textContent = '';
             loaderSpinner.style.display = 'none';
         }
+    }
+
+
+    // Apply white color to the background of each row
+    document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
+    function setWhiteBackgroundOfAllRows() {
+        google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
     }
 </script>
 </body>
