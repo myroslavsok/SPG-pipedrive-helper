@@ -100,7 +100,6 @@ function searchInPDByColumnValues(columnName, creds) {
         try {
             var response = UrlFetchApp.fetch(targetUrl, options);
             if (response.getResponseCode() === 200) {
-                Logger.log('response ' + response);
                 var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
                 if (responseObj.data) {   // Return only existed values
                     var foundResultItems = responseObj.data.map(function (foundItem) {

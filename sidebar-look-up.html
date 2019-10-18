@@ -55,8 +55,7 @@
             font-weight: bold;
         }
 
-        #loaderSpinner,
-        #loaderSpinnerColumnNames {
+        .spinner {
             display: none;
             border: 6px solid #f3f3f3;
             border-top: 6px solid #4787ed;
@@ -75,6 +74,24 @@
                 transform: rotate(360deg);
             }
         }
+
+        .column-status-spinner {
+            display: block;
+            width: 14px;
+            height: 14px;
+            margin: 0 10px 0 auto;
+            border: 2px solid #B7BAA7;
+            border-top: 2px solid #4787ed;
+        }
+
+        .ready-status {
+            background-color: rgba(92, 184, 92, 1);
+            border-radius: 5px;
+            padding: 1px 6px;
+            color: white;
+            margin-left: auto;
+        }
+
 
         #loaderSpinnerColumnNames {
             border: 8px solid #f3f3f3;
@@ -101,7 +118,7 @@
 </head>
 <body>
 
-<div id="loaderSpinnerColumnNames"></div>
+<div class="spinner" id="loaderSpinnerColumnNames"></div>
 
 <form id="findResemblancesForm">
     <h1>Look up</h1>
@@ -109,12 +126,14 @@
     <div id="columnNameCheckboxContainer"></div>
     <button type="submit" class="action" id="lookUpBtn">Look Up</button>
     <span id="amountOfFindItemsField">Results: has not started yet</span>
-    <button id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from spreadsheet</button>
+    <button type="button" id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from
+        spreadsheet
+    </button>
 </form>
 
 
 <p id="waitMessage"></p>
-<div id="loaderSpinner"></div>
+<div class="spinner" id="loaderSpinner"></div>
 
 <span id="errorMessage" class="error" title="Hide"></span>
 
@@ -139,7 +158,6 @@
 
 
     function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
-        console.log('columnNamesAndIndexesArr', columnNamesAndIndexesArr);
         const columnNameCheckboxContainer = document.getElementById('columnNameCheckboxContainer');
         columnNamesAndIndexesArr.forEach(columnNameAndIndexeObj => {
             const labelContainer = document.createElement('label');
@@ -159,16 +177,15 @@
 
         document.getElementById('findResemblancesForm').style.display = 'block';
         document.getElementById('loaderSpinnerColumnNames').style.display = 'none';
-
     }
 
 
     // Submit form. Start search by selected columns
     document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
     function startResemblancesSearchQuery() {
-        // showWaitMessage(true);
         const selectedColumns = getSelectedColumns(); // Get selected columns
-        console.log('selectedColumns', selectedColumns);
+
+        deleteStatusesOfColumns(); // Clear all statuses on column checkboxes
 
         // Start search on each column
         const creds = {
@@ -184,16 +201,25 @@
         let amountOfFindItems = 0;
         document.getElementById('amountOfFindItemsField').textContent = `Results: Processing`;
 
-
         selectedColumns.forEach(selectedColumn => {
+
+            setStatusOfColumn(selectedColumn, 'search'); // Set Search status to column checkbox
+
             google.script.run
                 .withSuccessHandler(function (response) {
                     getSearchResult(response);
-                    lookedUpColumnsNumber++;
+
+                    if (response.length) {                                      // Empty columns return empty array
+                        setStatusOfColumn(response[0][0].columnName, 'ready'); // Set Ready status to column checkbox
+                    }
 
                     amountOfFindItems += response.length;
 
+                    lookedUpColumnsNumber++;
                     if (lookedUpColumnsNumber === totalColumnsNumber) { // When search is finished
+
+                        updateStatusesOfEmptyColumn(); // Set Ready statuses for empty column because we cannot use this => response[0][0].columnName
+
                         showWaitMessage(false);
                         document.getElementById('lookUpBtn').disabled = false; // Enable [Look Up] after search
 
@@ -216,15 +242,49 @@
         document.body.querySelectorAll('#columnNameCheckboxContainer input:checked')
             .forEach(selectedCheckbox => selectedColumns.push(selectedCheckbox.value));
         if (!selectedColumns.length) {
-            alert('There is no selected checkboxes');
+            return alert('There is no selected checkboxes');
         }
         return selectedColumns
     }
 
 
+    function setStatusOfColumn(columnName, status) {
+        const columnInput = document.body.querySelector(`input[value="${columnName}"]`);
+        const columnInputLabelWrapper = columnInput.parentElement;
+        const searchStatusElement = document.createElement('div');
+
+        if (status === 'search') {
+            searchStatusElement.classList.add('spinner', 'column-status-spinner');
+        } else if (status === 'ready') {
+            columnInputLabelWrapper.querySelector('div.spinner.column-status-spinner').remove(); // Delete search spinner
+            searchStatusElement.classList.add('ready-status');
+            searchStatusElement.textContent = 'Ready';
+        }
+        columnInputLabelWrapper.append(searchStatusElement);
+    }
+
+
+    function deleteStatusesOfColumns() {
+        document.body.querySelectorAll('div.spinner.column-status-spinner, div.ready-status').forEach(statusItem => {
+            statusItem.remove();
+        });
+    }
+
+
+    function updateStatusesOfEmptyColumn() {
+        document.body.querySelectorAll('div.spinner.column-status-spinner').forEach(statusItem => {
+            const labelContainer = statusItem.parentElement;
+            const readyStatusItem = document.createElement('div');
+            readyStatusItem.classList.add('ready-status');
+            readyStatusItem.textContent = 'Ready';
+            labelContainer.append(readyStatusItem);
+            statusItem.remove();
+        });
+    }
+
+
     function getSearchResult(result) {
-        // showWaitMessage(false);
-        console.log('result', result);
+        // console.log('result', result);
     }
 
 
