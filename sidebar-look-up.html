@@ -7,32 +7,6 @@
 
     <style>
 
-        #columnNameCheckboxContainer {
-            width: 100%;
-            min-height: 100px;
-            max-height: 300px;
-            border: 1px solid lightgrey;
-            border-radius: .4px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
-
-        #columnNameCheckboxContainer label {
-            display: flex;
-            align-items: center;
-            margin-left: 5px;
-            margin-top: 10px;
-        }
-
-        #columnNameCheckboxContainer label input {
-            margin: 0;
-        }
-
-        #columnNameCheckboxContainer label span {
-            margin-left: 10px;
-        }
-
-
         body {
             padding: 0 5px;
             box-sizing: border-box;
@@ -46,8 +20,16 @@
             margin-top: 10px;
         }
 
-        .input-column-name-container input {
+        #columnNameCheckboxContainer {
             width: 100%;
+            min-height: 100px;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid lightgrey;
+            border-radius: .4px;
+            overflow-y: auto;
+            margin-top: 10px;
         }
 
         #waitMessage {
@@ -114,6 +96,40 @@
             margin-top: 10px;
         }
 
+
+        /* Column item + mapping */
+
+        .column-item-wrapper {
+            display: flex;
+            align-items: center;
+            margin: 4px;
+            padding: 4px 10px;
+            border: 1px solid lightgrey;
+            border-radius: 4px;
+        }
+
+        .column-item-wrapper .column-title-checkbox {
+            transform: scale(1.5);
+        }
+
+        .column-item-wrapper .column-info {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .column-item-wrapper .column-info .column-title {
+            display: flex;
+        }
+
+        .column-item-wrapper .column-info .column-title span {
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .column-item-wrapper .column-info .column-mapping-wrapper label {
+            margin-left: 15px;
+        }
+
     </style>
 </head>
 <body>
@@ -123,7 +139,48 @@
 <form id="findResemblancesForm">
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
-    <div id="columnNameCheckboxContainer"></div>
+    <div id="columnNameCheckboxContainer">
+
+        <div class="column-item-wrapper">
+            <input class="column-title-checkbox" type="checkbox" name="columnNames" value="Website">
+            <div class="column-info">
+                <div class="column-title">
+                    <span>Title</span>
+                    <!--<div class="spinner column-status-spinner"></div>-->
+                    <!--<div class="ready-status">Ready</div>-->
+                </div>
+                <hr>
+                <div class="column-mapping-wrapper">
+                    <select>
+                        <option selected="selected" value="">All types</option>
+                        <option value="deal">deal</option>
+                        <option value="person">person</option>
+                        <option value="organization">organization</option>
+                        <option value="product">product</option>
+                        <option value="file">file</option>
+                    </select>
+
+                    <label>
+                        <input type="checkbox" name="columnNames" value="TEST">
+                        <span>Exact match</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+        <!--        <label>-->
+        <!--            <input type="checkbox" name="columnNames" value="Website">-->
+        <!--            <span>(A) Test A Ready</span>-->
+        <!--            <div class="ready-status">Ready</div>-->
+        <!--        </label>-->
+
+        <!--        <label>-->
+        <!--            <input type="checkbox" name="columnNames" value="Website">-->
+        <!--            <span>(B) Test B loading</span>-->
+        <!--            <div class="spinner column-status-spinner"></div>-->
+        <!--        </label>-->
+    </div>
     <button type="submit" class="action" id="lookUpBtn">Look Up</button>
     <span id="amountOfFindItemsField">Results: has not started yet</span>
     <button type="button" id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from
@@ -158,20 +215,53 @@
 
     function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
         const columnNameCheckboxContainer = document.getElementById('columnNameCheckboxContainer');
-        columnNamesAndIndexesArr.forEach(columnNameAndIndexeObj => {
-            const labelContainer = document.createElement('label');
+        columnNamesAndIndexesArr.forEach(columnNameAndIndexObj => {
+            // const labelContainer = document.createElement('label');
+            //
+            // const checkbox = document.createElement('input');
+            // checkbox.type = 'checkbox';
+            // checkbox.name = 'columnNames';
+            // checkbox.value = columnNameAndIndexeObj.columnName;
+            //
+            // const spanTextNode = document.createElement('span');
+            // spanTextNode.textContent = `(${columnNameAndIndexeObj.columnIndex}) ${columnNameAndIndexeObj.columnName}`;
+            //
+            // labelContainer.append(checkbox);
+            // labelContainer.append(spanTextNode);
+            // columnNameCheckboxContainer.append(labelContainer);
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.name = 'columnNames';
-            checkbox.value = columnNameAndIndexeObj.columnName;
 
-            const spanTextNode = document.createElement('span');
-            spanTextNode.textContent = `(${columnNameAndIndexeObj.columnIndex}) ${columnNameAndIndexeObj.columnName}`;
+            const columnItemWrapper = document.createElement('div'); // Create column item wrapper
+            columnItemWrapper.classList.add('column-item-wrapper');
+            columnItemWrapper.innerHTML =
+                `<input class="column-title-checkbox" type="checkbox">
+                 <div class="column-info">
+                     <div class="column-title">
+                         <span></span>
+                     </div>
+                     <hr>
+                     <div class="column-mapping-wrapper">
+                         <select>
+                             <option selected="selected" value="">All types</option>
+                             <option value="deal">deal</option>
+                             <option value="person">person</option>
+                             <option value="organization">organization</option>
+                             <option value="product">product</option>
+                             <option value="file">file</option>
+                         </select>
+                         <label>
+                             <input type="checkbox"">
+                             <span>Exact match</span>
+                         </label>
+                     </div>
+                 </div>`;
 
-            labelContainer.append(checkbox);
-            labelContainer.append(spanTextNode);
-            columnNameCheckboxContainer.append(labelContainer);
+            // Add column name setting
+            columnItemWrapper.querySelector('input.column-title-checkbox').value = columnNameAndIndexObj.columnName;
+            columnItemWrapper.querySelector('div.column-title span').textContent = `(${columnNameAndIndexObj.columnIndex}) ${columnNameAndIndexObj.columnName}`;
+
+            console.log('columnItemWrapper', columnItemWrapper);
+            columnNameCheckboxContainer.append(columnItemWrapper);
         });
 
         document.getElementById('findResemblancesForm').style.display = 'block';
