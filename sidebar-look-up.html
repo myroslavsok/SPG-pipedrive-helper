@@ -139,48 +139,7 @@
 <form id="findResemblancesForm">
     <h1>Look up</h1>
     <h3>Spreadsheet Columns to look up:</h3>
-    <div id="columnNameCheckboxContainer">
-
-        <div class="column-item-wrapper">
-            <input class="column-title-checkbox" type="checkbox" name="columnNames" value="Website">
-            <div class="column-info">
-                <div class="column-title">
-                    <span>Title</span>
-                    <!--<div class="spinner column-status-spinner"></div>-->
-                    <!--<div class="ready-status">Ready</div>-->
-                </div>
-                <hr>
-                <div class="column-mapping-wrapper">
-                    <select>
-                        <option selected="selected" value="">All types</option>
-                        <option value="deal">deal</option>
-                        <option value="person">person</option>
-                        <option value="organization">organization</option>
-                        <option value="product">product</option>
-                        <option value="file">file</option>
-                    </select>
-
-                    <label>
-                        <input type="checkbox" name="columnNames" value="TEST">
-                        <span>Exact match</span>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-
-        <!--        <label>-->
-        <!--            <input type="checkbox" name="columnNames" value="Website">-->
-        <!--            <span>(A) Test A Ready</span>-->
-        <!--            <div class="ready-status">Ready</div>-->
-        <!--        </label>-->
-
-        <!--        <label>-->
-        <!--            <input type="checkbox" name="columnNames" value="Website">-->
-        <!--            <span>(B) Test B loading</span>-->
-        <!--            <div class="spinner column-status-spinner"></div>-->
-        <!--        </label>-->
-    </div>
+    <div id="columnNameCheckboxContainer"></div>
     <button type="submit" class="action" id="lookUpBtn">Look Up</button>
     <span id="amountOfFindItemsField">Results: has not started yet</span>
     <button type="button" id="clearMarkBtn" title="Changes background of all rows to white">Clear marks from
@@ -216,21 +175,6 @@
     function displayColumnNamesCheckboxes(columnNamesAndIndexesArr) {
         const columnNameCheckboxContainer = document.getElementById('columnNameCheckboxContainer');
         columnNamesAndIndexesArr.forEach(columnNameAndIndexObj => {
-            // const labelContainer = document.createElement('label');
-            //
-            // const checkbox = document.createElement('input');
-            // checkbox.type = 'checkbox';
-            // checkbox.name = 'columnNames';
-            // checkbox.value = columnNameAndIndexeObj.columnName;
-            //
-            // const spanTextNode = document.createElement('span');
-            // spanTextNode.textContent = `(${columnNameAndIndexeObj.columnIndex}) ${columnNameAndIndexeObj.columnName}`;
-            //
-            // labelContainer.append(checkbox);
-            // labelContainer.append(spanTextNode);
-            // columnNameCheckboxContainer.append(labelContainer);
-
-
             const columnItemWrapper = document.createElement('div'); // Create column item wrapper
             columnItemWrapper.classList.add('column-item-wrapper');
             columnItemWrapper.innerHTML =
@@ -260,7 +204,6 @@
             columnItemWrapper.querySelector('input.column-title-checkbox').value = columnNameAndIndexObj.columnName;
             columnItemWrapper.querySelector('div.column-title span').textContent = `(${columnNameAndIndexObj.columnIndex}) ${columnNameAndIndexObj.columnName}`;
 
-            console.log('columnItemWrapper', columnItemWrapper);
             columnNameCheckboxContainer.append(columnItemWrapper);
         });
 
@@ -272,8 +215,12 @@
     // Submit form. Start search by selected columns
     document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
 
-    function startResemblancesSearchQuery() {
-        const selectedColumns = getSelectedColumns(); // Get selected columns
+    function startResemblancesSearchQuery(event) {
+        event.preventDefault();
+        const selectedColumnObjects = getSelectedColumns(); // Get selected columns {selectedColumn, exactMatch, type}
+        if (!selectedColumnObjects) {
+            return alert('There is no selected checkboxes');
+        }
 
         deleteStatusesOfColumns(); // Clear all statuses on column checkboxes
 
@@ -286,20 +233,20 @@
         showWaitMessage(true);
         document.getElementById('lookUpBtn').disabled = true; // Disable [Look Up] during search
         let lookedUpColumnsNumber = 0;
-        const totalColumnsNumber = selectedColumns.length;
+        const totalColumnsNumber = selectedColumnObjects.length;
 
         let amountOfFindItems = 0;
         document.getElementById('amountOfFindItemsField').textContent = `Results: Processing`;
 
-        selectedColumns.forEach(selectedColumn => {
+        selectedColumnObjects.forEach(selectedColumnObj => { // {selectedColumn, exactMatch, type}
 
-            setStatusOfColumn(selectedColumn, 'search'); // Set Search status to column checkbox
+            setStatusOfColumn(selectedColumnObj.selectedColumn, 'search'); // Set Search status to column checkbox
 
             google.script.run
                 .withSuccessHandler(function (response) {
                     getSearchResult(response);
 
-                    if (response.length) {                                      // Empty columns return empty array
+                    if (response.length) { // Empty columns return empty array
                         setStatusOfColumn(response[0][0].columnName, 'ready'); // Set Ready status to column checkbox
                     }
 
@@ -322,35 +269,41 @@
                     }
                 })
                 .withFailureHandler(showError)
-                .searchInPDByColumnValues(selectedColumn, creds);
+                .searchInPDByColumnValues(selectedColumnObj, creds);
         });
     }
 
 
     function getSelectedColumns() {
-        let selectedColumns = [];
-        document.body.querySelectorAll('#columnNameCheckboxContainer input:checked')
-            .forEach(selectedCheckbox => selectedColumns.push(selectedCheckbox.value));
-        if (!selectedColumns.length) {
-            return alert('There is no selected checkboxes');
-        }
-        return selectedColumns
+        const selectedColumns = [];
+        document.body.querySelectorAll('#columnNameCheckboxContainer input.column-title-checkbox:checked')
+            .forEach(selectedColumnCheckbox => {
+                const selectedColumnItemWrapper = selectedColumnCheckbox.parentElement;
+                selectedColumns.push({
+                    selectedColumn: selectedColumnCheckbox.value,
+                    exactMatch: selectedColumnItemWrapper.querySelector('.column-mapping-wrapper input').checked,
+                    type: selectedColumnItemWrapper.querySelector('.column-mapping-wrapper select').value
+                });
+            });
+        console.log('selectedColumns', selectedColumns);
+        return selectedColumns;
     }
 
 
-    function setStatusOfColumn(columnName, status) {
-        const columnInput = document.body.querySelector(`input[value="${columnName}"]`);
-        const columnInputLabelWrapper = columnInput.parentElement;
-        const searchStatusElement = document.createElement('div');
+    function setStatusOfColumn(selectedColumnName, status) {
+        const columnInput = document.body.querySelector(`input[value="${selectedColumnName}"]`);
+        const columnInputWrapper = columnInput.parentElement;
+        const columnTitleWrapper = columnInputWrapper.querySelector('.column-info .column-title');
 
+        const searchStatusElement = document.createElement('div');
         if (status === 'search') {
             searchStatusElement.classList.add('spinner', 'column-status-spinner');
         } else if (status === 'ready') {
-            columnInputLabelWrapper.querySelector('div.spinner.column-status-spinner').remove(); // Delete search spinner
+            columnInputWrapper.querySelector('div.spinner.column-status-spinner').remove(); // Delete search spinner
             searchStatusElement.classList.add('ready-status');
             searchStatusElement.textContent = 'Ready';
         }
-        columnInputLabelWrapper.append(searchStatusElement);
+        columnTitleWrapper.append(searchStatusElement);
     }
 
 

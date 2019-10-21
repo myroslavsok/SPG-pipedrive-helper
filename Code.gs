@@ -82,11 +82,12 @@ function getColumnNamesAndIndexes() {
 }
 
 
-function searchInPDByColumnValues(columnName, creds) {
+function searchInPDByColumnValues(selectedColumnObj, creds) { // selectedColumnObj: {selectedColumn, exactMatch, type}
+
     pipedriveApiKey = creds.pdak; // Set 'credentials'
     pipedriveSmartEmail = creds.pdse;
 
-    const columnValueCells = getValueCellsByColumnName(columnName); // Getting column cells with values by column name
+    const columnValueCells = getValueCellsByColumnName(selectedColumnObj); // Getting column cells with values by column name
 
     // Start search by values from one column
     var options = {
@@ -96,7 +97,7 @@ function searchInPDByColumnValues(columnName, creds) {
     };
     var responseArr = [];
     columnValueCells.forEach(function (columnValueCell) {
-        var targetUrl = generateSearchUrl(columnValueCell.value, 0, SEARCH_QUERY_LIMIT, pipedriveApiKey);
+        var targetUrl = generateSearchUrl(columnValueCell, 0, SEARCH_QUERY_LIMIT, pipedriveApiKey);
         try {
             var response = UrlFetchApp.fetch(targetUrl, options);
             if (response.getResponseCode() === 200) {
@@ -118,15 +119,17 @@ function searchInPDByColumnValues(columnName, creds) {
                             }
                         })
                         .filter(function (foundItem) {
-                            // "result_score > 1" means that there is no at least 90% of similarity between search results and call values
-                            return foundItem.result_score > 1;
+                            // "result_score > 0" means that there is no at least ~90% of similarity between search results and call values
+                            return foundItem.result_score > 0;
                         });
-                    markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
+                    if (foundResultItems.length) {
+                        markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
+                    }
                     responseArr.push(foundResultItems);
                 }
             }
         } catch (e) {
-            Logger.log('error: ' + e); // Ignore possible error so as not to stop search
+            Logger.log('error log: ' + e); // Ignore possible error so as not to stop search
         }
     });
 
@@ -134,18 +137,20 @@ function searchInPDByColumnValues(columnName, creds) {
 }
 
 
-function getValueCellsByColumnName(columnName) {
+function getValueCellsByColumnName(selectedColumnObj) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     var data = sheet.getDataRange().getValues();
-    var colNumber = data[0].indexOf(columnName); // Column position number
+    var colNumber = data[0].indexOf(selectedColumnObj.selectedColumn); // Column position number
 
     var columnValues = [];
     for (var i = 1; i <= sheet.getLastRow() - 1; i++) { // Skips first row with column titles
         columnValues.push({
             rowNumber: i,
             colNumber: colNumber,
-            colName: columnName,
-            value: data[i][colNumber]
+            colName: selectedColumnObj.selectedColumn,
+            value: data[i][colNumber],
+            exactMatch: selectedColumnObj.exactMatch,
+            type: selectedColumnObj.type
         });
     }
 
@@ -158,14 +163,24 @@ function getValueCellsByColumnName(columnName) {
 
 
 // Generate fetch url for search (SearchResults API)
-function generateSearchUrl(term, paginationOffset, dataLimit, apiToken) {
-    var formatedTerm = term
+function generateSearchUrl(columnValueCell, paginationOffset, dataLimit, apiToken) {
+    var formatedTerm = columnValueCell.value
         .toString() // Can not slice number
         .slice(0, SEARCH_QUERY_LIMIT) // Temp length limit is 500 characters
         .replace(new RegExp(/[`~#&*]/gi), ''); // Delete special characters so as to encode url with encodeURI
-    // https://stackoverflow.com/questions/332872/encode-url-in-javascript/332897#332897?newreg=d7be5054e80b4f948cdcf3129cbc3aaa
 
-    var targetUrl = 'https://api.pipedrive.com/v1/searchResults?term=' + formatedTerm + '&start=' + paginationOffset + '&limit=' + dataLimit + '&api_token=' + apiToken;
+    var exactMatch = 0;
+    if (columnValueCell.exactMatch && formatedTerm.length <= 30) {
+        exactMatch = 1;
+    }
+    var itemType = columnValueCell.type;
+
+    var targetUrl = 'https://api.pipedrive.com/v1/searchResults?term=' + formatedTerm +
+                    '&item_type=' + itemType +
+                    '&start=' + paginationOffset +
+                    '&exact_match=' + exactMatch +
+                    '&limit=' + dataLimit +
+                    '&api_token=' + apiToken;
     return encodeURI(targetUrl);
 }
 
