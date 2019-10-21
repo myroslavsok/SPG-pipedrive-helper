@@ -137,7 +137,6 @@
 
 <span id="errorMessage" class="error" title="Hide"></span>
 
-
 <script>
     window.onload = () => {
         const pdak = localStorage.getItem('pdak');
@@ -182,6 +181,7 @@
 
     // Submit form. Start search by selected columns
     document.getElementById('findResemblancesForm').addEventListener('submit', startResemblancesSearchQuery, true);
+
     function startResemblancesSearchQuery() {
         const selectedColumns = getSelectedColumns(); // Get selected columns
 
@@ -322,6 +322,7 @@
 
     // Apply white color to the background of each row
     document.getElementById('clearMarkBtn').addEventListener('click', setWhiteBackgroundOfAllRows, true);
+
     function setWhiteBackgroundOfAllRows() {
         google.script.run.withSuccessHandler().withFailureHandler(showError).clearMark();
     }

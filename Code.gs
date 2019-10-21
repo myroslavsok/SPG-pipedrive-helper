@@ -102,19 +102,25 @@ function searchInPDByColumnValues(columnName, creds) {
             if (response.getResponseCode() === 200) {
                 var responseObj = JSON.parse(response.getContentText()); // Parse response to JS object
                 if (responseObj.data) {   // Return only existed values
-                    var foundResultItems = responseObj.data.map(function (foundItem) {
-                        // responseObj.data is array of found items (deal, person, organization etc)
-                        return {
-                            id: foundItem.id,
-                            title: foundItem.title,
-                            type: foundItem.type,
-                            cellValue: columnValueCell.value,
-                            cellRowNumber: columnValueCell.rowNumber,
-                            cellColumnNumber: columnValueCell.colNumber,
-                            columnName: columnValueCell.colName,
-                            url: generateFoundItemUrl(pipedriveSmartEmail.split('@')[0], foundItem.type, foundItem.id)
-                        }
-                    });
+                    var foundResultItems = responseObj.data
+                        .map(function (foundItem) {
+                            // responseObj.data is array of found items (deal, person, organization etc)
+                            return {
+                                id: foundItem.id,
+                                title: foundItem.title,
+                                type: foundItem.type,
+                                result_score: foundItem.result_score, // Shows how much cell values correspond to search result
+                                cellValue: columnValueCell.value,
+                                cellRowNumber: columnValueCell.rowNumber,
+                                cellColumnNumber: columnValueCell.colNumber,
+                                columnName: columnValueCell.colName,
+                                url: generateFoundItemUrl(pipedriveSmartEmail.split('@')[0], foundItem.type, foundItem.id)
+                            }
+                        })
+                        .filter(function (foundItem) {
+                            // "result_score > 1" means that there is no at least 90% of similarity between search results and call values
+                            return foundItem.result_score > 1;
+                        });
                     markAndCommentCellWithResemblances(foundResultItems); // Mark found cell with color and add comments (notes) to it
                     responseArr.push(foundResultItems);
                 }
